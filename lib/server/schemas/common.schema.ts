@@ -1,6 +1,6 @@
 import 'server-only';
 import { z } from 'zod';
-import { ValidationError } from './errors';
+import { ValidationError } from '../errors';
 
 export const MAX_BCRYPT_BYTES = 72;
 
@@ -32,6 +32,8 @@ export const passwordSchema = z
     error: `La contrasena no puede superar los ${MAX_BCRYPT_BYTES} bytes.`,
   });
 
+export const bcryptHashSchema = z.string().min(1);
+
 export function updateObjectSchema<T extends z.ZodRawShape>(shape: T) {
   return z
     .object(shape)
@@ -56,3 +58,4 @@ export function parseOrThrow<TSchema extends z.ZodType>(
   }
   return result.data;
 }
+

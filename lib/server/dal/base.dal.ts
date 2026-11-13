@@ -7,7 +7,7 @@ import {
   UniqueConstraintError,
 } from '../errors';
 import { getPrisma } from '../prisma';
-import { parseOrThrow } from '../validation';
+import { parseOrThrow } from '../schemas';
 
 function extractUniqueTarget(meta: unknown): string[] | undefined {
   if (!meta || typeof meta !== 'object') {

@@ -1,12 +1,6 @@
 import 'server-only';
-import { z } from 'zod';
 import { BaseDAL } from './base.dal';
-import {
-  positiveIntSchema,
-  requiredTextSchema,
-  updateObjectSchema,
-  uuidSchema,
-} from '../validation';
+import { subjectSchemas } from '../schemas';
 import type { CourseDTO } from './course.dal';
 
 export interface SubjectDTO {
@@ -32,23 +26,6 @@ export interface UpdateSubjectInput {
   hours?: number;
 }
 
-const subjectIdSchema = uuidSchema('El id de la asignatura');
-const subjectNameSchema = requiredTextSchema('El nombre de la asignatura');
-const courseIdSchema = uuidSchema('El id del curso');
-const subjectHoursSchema = positiveIntSchema('La cantidad de horas');
-
-const createSubjectSchema = z.object({
-  name: subjectNameSchema,
-  courseId: courseIdSchema,
-  hours: subjectHoursSchema,
-});
-
-const updateSubjectSchema = updateObjectSchema({
-  name: subjectNameSchema.optional(),
-  courseId: courseIdSchema.optional(),
-  hours: subjectHoursSchema.optional(),
-});
-
 const SUBJECT_SELECT = {
   id: true,
   name: true,
@@ -72,7 +49,7 @@ const SUBJECT_WITH_COURSE_SELECT = {
  */
 export class SubjectDAL extends BaseDAL {
   async create(input: CreateSubjectInput): Promise<SubjectDTO> {
-    const data = this.validate(createSubjectSchema, input);
+    const data = this.validate(subjectSchemas.create, input);
 
     return this.execute(() =>
       this.db.subject.create({
@@ -83,7 +60,7 @@ export class SubjectDAL extends BaseDAL {
   }
 
   async findById(id: string): Promise<SubjectWithCourseDTO | null> {
-    const subjectId = this.validate(subjectIdSchema, id);
+    const subjectId = this.validate(subjectSchemas.id, id);
 
     return this.execute(() =>
       this.db.subject.findUnique({
@@ -94,7 +71,7 @@ export class SubjectDAL extends BaseDAL {
   }
 
   async listByCourse(courseId: string): Promise<SubjectDTO[]> {
-    const validCourseId = this.validate(courseIdSchema, courseId);
+    const validCourseId = this.validate(subjectSchemas.courseId, courseId);
 
     return this.execute(() =>
       this.db.subject.findMany({
@@ -106,8 +83,8 @@ export class SubjectDAL extends BaseDAL {
   }
 
   async update(id: string, input: UpdateSubjectInput): Promise<SubjectDTO> {
-    const subjectId = this.validate(subjectIdSchema, id);
-    const data = this.validate(updateSubjectSchema, input);
+    const subjectId = this.validate(subjectSchemas.id, id);
+    const data = this.validate(subjectSchemas.update, input);
 
     return this.execute(() =>
       this.db.subject.update({
@@ -119,7 +96,7 @@ export class SubjectDAL extends BaseDAL {
   }
 
   async delete(id: string): Promise<void> {
-    const subjectId = this.validate(subjectIdSchema, id);
+    const subjectId = this.validate(subjectSchemas.id, id);
 
     await this.execute(() =>
       this.db.subject.delete({

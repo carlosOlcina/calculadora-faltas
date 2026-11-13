@@ -1,14 +1,8 @@
 import 'server-only';
-import { z } from 'zod';
 import type { PrismaClient } from '@/generated/prisma/client';
 import { BaseDAL } from './base.dal';
 import { PasswordHasher, passwordHasher } from '../password-hasher';
-import {
-  passwordSchema,
-  requiredTextSchema,
-  updateObjectSchema,
-  uuidSchema,
-} from '../validation';
+import { userSchemas } from '../schemas';
 import type { CourseDTO } from './course.dal';
 
 export interface UserDTO {
@@ -34,22 +28,6 @@ export interface UpdateUserInput {
   password?: string;
   courseId?: string;
 }
-
-const userIdSchema = uuidSchema('El id del usuario');
-const userNameSchema = requiredTextSchema('El nombre de usuario');
-const courseIdSchema = uuidSchema('El id del curso');
-
-const createUserSchema = z.object({
-  name: userNameSchema,
-  password: passwordSchema,
-  courseId: courseIdSchema,
-});
-
-const updateUserSchema = updateObjectSchema({
-  name: userNameSchema.optional(),
-  password: passwordSchema.optional(),
-  courseId: courseIdSchema.optional(),
-});
 
 /**
  * Seleccion publica segura: excluye `passwordHash` para evitar filtraciones
@@ -87,7 +65,10 @@ export class UserDAL extends BaseDAL {
   }
 
   async create(input: CreateUserInput): Promise<UserWithCourseDTO> {
-    const { name, password, courseId } = this.validate(createUserSchema, input);
+    const { name, password, courseId } = this.validate(
+      userSchemas.create,
+      input,
+    );
     const passwordHash = await this.hasher.hash(password);
 
     return this.execute(() =>
@@ -103,7 +84,7 @@ export class UserDAL extends BaseDAL {
   }
 
   async findById(id: string): Promise<UserWithCourseDTO | null> {
-    const userId = this.validate(userIdSchema, id);
+    const userId = this.validate(userSchemas.id, id);
 
     return this.execute(() =>
       this.db.user.findUnique({
@@ -114,7 +95,7 @@ export class UserDAL extends BaseDAL {
   }
 
   async findByName(name: string): Promise<UserWithCourseDTO | null> {
-    const normalizedName = this.validate(userNameSchema, name);
+    const normalizedName = this.validate(userSchemas.name, name);
 
     return this.execute(() =>
       this.db.user.findUnique({
@@ -125,7 +106,7 @@ export class UserDAL extends BaseDAL {
   }
 
   async listByCourse(courseId: string): Promise<UserDTO[]> {
-    const validCourseId = this.validate(courseIdSchema, courseId);
+    const validCourseId = this.validate(userSchemas.courseId, courseId);
 
     return this.execute(() =>
       this.db.user.findMany({
@@ -137,8 +118,8 @@ export class UserDAL extends BaseDAL {
   }
 
   async update(id: string, input: UpdateUserInput): Promise<UserWithCourseDTO> {
-    const userId = this.validate(userIdSchema, id);
-    const { password, ...rest } = this.validate(updateUserSchema, input);
+    const userId = this.validate(userSchemas.id, id);
+    const { password, ...rest } = this.validate(userSchemas.update, input);
     const data: {
       name?: string;
       courseId?: string;
@@ -166,8 +147,8 @@ export class UserDAL extends BaseDAL {
     name: string,
     plainPassword: string,
   ): Promise<UserWithCourseDTO | null> {
-    const normalizedName = this.validate(userNameSchema, name);
-    if (!passwordSchema.safeParse(plainPassword).success) {
+    const normalizedName = this.validate(userSchemas.name, name);
+    if (!userSchemas.password.safeParse(plainPassword).success) {
       return null;
     }
 
@@ -196,7 +177,7 @@ export class UserDAL extends BaseDAL {
   }
 
   async delete(id: string): Promise<void> {
-    const userId = this.validate(userIdSchema, id);
+    const userId = this.validate(userSchemas.id, id);
 
     await this.execute(() =>
       this.db.user.delete({

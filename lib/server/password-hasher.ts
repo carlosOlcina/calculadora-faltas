@@ -1,10 +1,7 @@
 import 'server-only';
 import bcrypt from 'bcrypt';
-import { z } from 'zod';
 import { serverEnv } from './env';
-import { parseOrThrow, passwordSchema } from './validation';
-
-const bcryptHashSchema = z.string().min(1);
+import { parseOrThrow, userSchemas } from './schemas';
 
 /**
  * Servicio encapsulado para calcular y verificar hashes de contrasenas con bcrypt.
@@ -21,7 +18,7 @@ export class PasswordHasher {
    * Valida con Zod que no este vacia ni supere el limite de 72 bytes UTF-8 de bcrypt.
    */
   async hash(plainPassword: string): Promise<string> {
-    const validatedPassword = parseOrThrow(passwordSchema, plainPassword);
+    const validatedPassword = parseOrThrow(userSchemas.password, plainPassword);
     const saltRounds = this.explicitSaltRounds ?? serverEnv.bcryptSaltRounds;
     return bcrypt.hash(validatedPassword, saltRounds);
   }
@@ -31,8 +28,8 @@ export class PasswordHasher {
    */
   async verify(plainPassword: string, passwordHash: string): Promise<boolean> {
     if (
-      !passwordSchema.safeParse(plainPassword).success ||
-      !bcryptHashSchema.safeParse(passwordHash).success
+      !userSchemas.password.safeParse(plainPassword).success ||
+      !userSchemas.passwordHash.safeParse(passwordHash).success
     ) {
       return false;
     }
