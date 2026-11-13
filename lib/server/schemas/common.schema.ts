@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { ValidationError } from '../errors';
 
 export const MAX_BCRYPT_BYTES = 72;
+export const MAX_POSTGRES_INT4 = 2_147_483_647;
 
 export function uuidSchema(fieldLabel: string) {
   return z
@@ -22,7 +23,10 @@ export function positiveIntSchema(fieldLabel: string) {
   return z
     .number({ error: `${fieldLabel} debe ser un numero entero positivo.` })
     .int({ error: `${fieldLabel} debe ser un numero entero positivo.` })
-    .positive({ error: `${fieldLabel} debe ser un numero entero positivo.` });
+    .positive({ error: `${fieldLabel} debe ser un numero entero positivo.` })
+    .max(MAX_POSTGRES_INT4, {
+      error: `${fieldLabel} supera el limite permitido.`,
+    });
 }
 
 export const passwordSchema = z
