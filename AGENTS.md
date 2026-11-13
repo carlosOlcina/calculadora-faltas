@@ -7,3 +7,9 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## Project Conventions & Architectural Decisions
+
+- **Zod validation schemas**: Keep all Zod validation schemas in `lib/server/schemas/` organized by domain (`common.schema.ts`, `env.schema.ts`, `course.schema.ts`, `subject.schema.ts`, `user.schema.ts`). Do not define schemas inline inside DAL classes or services, and group related schemas per domain into a single exported object (e.g., `courseSchemas`, `userSchemas`) instead of declaring many separate top-level constants in one file.
+- **Server-only boundary & secrets**: Keep database/auth environment variables without the `NEXT_PUBLIC_` prefix and mark server utilities, Prisma client, schemas, and DAL classes with `import 'server-only'`.
+
