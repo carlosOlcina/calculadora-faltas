@@ -1,0 +1,98 @@
+:root {
+  color-scheme: light dark;
+
+  /* Superficies */
+  --surface-canvas: light-dark(#f7f7f5, #151514);
+  --surface-card: light-dark(#ffffff, #1d1d1b);
+  --surface-subtle: light-dark(#efefed, #252522);
+  --surface-track: light-dark(#efefed, #161614);
+  --surface-segment-active: light-dark(#ffffff, #282825);
+  --surface-input: light-dark(#ffffff, #181816);
+  --surface-hover: light-dark(#f2f2ef, #2a2a27);
+
+  /* Tintas */
+  --ink-primary: light-dark(#181817, #f3f2ee);
+  --ink-secondary: light-dark(#5a5a54, #a8a79f);
+  --ink-tertiary: light-dark(#6c6c65, #8d8c84);
+
+  /* Bordes */
+  --border-subtle: light-dark(#e5e5e0, #2e2e2b);
+  --border-strong: light-dark(#c8c8c0, #464640);
+
+  /* Acento */
+  --accent-primary: light-dark(#2151d6, #7ca6ff);
+  --accent-fill: light-dark(#2151d6, #2b5de0);
+  --accent-fill-hover: light-dark(#1b44b8, #3668ea);
+  --accent-fill-active: light-dark(#16389a, #2450c7);
+  --accent-ink: #ffffff;
+  --accent-tint: light-dark(rgb(33 81 214 / 0.12), rgb(124 166 255 / 0.18));
+  --accent-focus-halo: light-dark(rgb(33 81 214 / 0.16), rgb(124 166 255 / 0.24));
+
+  /* Estado */
+  --status-error-ink: light-dark(#b91c1c, #fca5a5);
+  --status-error-border: light-dark(#dc2626, #f87171);
+  --status-error-surface: light-dark(#fef2f2, #2b1616);
+  --status-error-halo: light-dark(rgb(220 38 38 / 0.14), rgb(248 113 113 / 0.22));
+  --status-success-ink: light-dark(#166534, #86efac);
+  --status-success-border: light-dark(#bbf7d0, #1e462b);
+  --status-success-surface: light-dark(#f0fdf4, #14261b);
+
+  /* Tipografia */
+  --font-sans: var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --text-xs: 0.8125rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --leading-tight: 1.25;
+  --leading-snug: 1.4;
+  --leading-normal: 1.5;
+
+  /* Espaciado y tamanos */
+  --space-1: 0.25rem;
+  --space-1-5: 0.375rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  --control-height: 3rem;
+  --card-max-width: 26.25rem;
+  --viewport-gutter: 1rem;
+  --icon-size-sm: 1.125rem;
+  --icon-size-md: 1.25rem;
+  --brand-mark-size: 1.75rem;
+
+  /* Forma */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.875rem;
+  --radius-full: 9999px;
+
+  /* Elevacion */
+  --shadow-card: light-dark(
+    0 1px 2px rgb(24 24 23 / 0.04), 0 12px 28px -18px rgb(24 24 23 / 0.14),
+    0 1px 2px rgb(0 0 0 / 0.36), 0 14px 30px -18px rgb(0 0 0 / 0.6)
+  );
+  --shadow-tab-active: light-dark(
+    0 1px 2px rgb(24 24 23 / 0.08),
+    0 1px 3px rgb(0 0 0 / 0.45)
+  );
+
+  /* Foco y transiciones */
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+  --motion-duration: 180ms;
+  --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-duration: 0.01ms;
+  }
+}
+
