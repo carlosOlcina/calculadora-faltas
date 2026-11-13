@@ -1,0 +1,160 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-13T19:14:00.000Z",
+  "title": "Design System: Calculadora de Faltas",
+  "extensions": {
+    "colorMeta": {
+      "cobalt-accent": {
+        "role": "primary",
+        "displayName": "Cobalt Accent",
+        "canonical": "#2151d6",
+        "tonalRamp": ["#0c1d4f", "#142f7d", "#1b44b8", "#2151d6", "#4b74e3", "#7ca6ff", "#aec8ff", "#e8effd"]
+      },
+      "cobalt-fill": {
+        "role": "primary",
+        "displayName": "Cobalt Action Fill",
+        "canonical": "#2151d6",
+        "tonalRamp": ["#0c1d4f", "#16389a", "#1b44b8", "#2151d6", "#2b5de0", "#4b74e3", "#9cb9fa", "#edf2fe"]
+      },
+      "paper-canvas": {
+        "role": "neutral",
+        "displayName": "Warm Paper Canvas",
+        "canonical": "#f7f7f5",
+        "tonalRamp": ["#151514", "#282825", "#5a5a54", "#8d8c84", "#c8c8c0", "#e5e5e0", "#f7f7f5", "#ffffff"]
+      },
+      "card-surface": {
+        "role": "neutral",
+        "displayName": "Paper Card Surface",
+        "canonical": "#ffffff",
+        "tonalRamp": ["#1d1d1b", "#2e2e2b", "#5a5a54", "#9e9e96", "#d5d5cf", "#efefef", "#f7f7f5", "#ffffff"]
+      },
+      "ink-primary": {
+        "role": "neutral",
+        "displayName": "Carbon Ledger Ink",
+        "canonical": "#181817",
+        "tonalRamp": ["#181817", "#2e2e2b", "#464640", "#5a5a54", "#8d8c84", "#c8c8c0", "#e5e5e0", "#f3f2ee"]
+      },
+      "hairline-border": {
+        "role": "neutral",
+        "displayName": "Warm Hairline Border",
+        "canonical": "#e5e5e0",
+        "tonalRamp": ["#1e1e1c", "#2e2e2b", "#464640", "#6c6c65", "#9f9f97", "#c8c8c0", "#e5e5e0", "#f5f5f2"]
+      },
+      "error-ink": {
+        "role": "error",
+        "displayName": "Academic Alert Red",
+        "canonical": "#b91c1c",
+        "tonalRamp": ["#450a0a", "#7f1d1d", "#991b1b", "#b91c1c", "#dc2626", "#f87171", "#fca5a5", "#fef2f2"]
+      }
+    },
+    "typographyMeta": {
+      "headline": { "displayName": "Headline", "purpose": "Direct form and session card h1 titles without kickers." },
+      "title": { "displayName": "Brand Title", "purpose": "Application lockup title alongside geometric brand SVG." },
+      "body": { "displayName": "Body / Control", "purpose": "1rem text inside inputs, native selects, and primary actions." },
+      "label": { "displayName": "Field Label / Tab", "purpose": "Control labels, navigation segments, and concise helper copy." },
+      "mono": { "displayName": "Tabular Hours Mono", "purpose": "Course total hours and attendance ratios in tabular-nums." }
+    },
+    "shadows": [
+      {
+        "name": "shadow-card",
+        "value": "light-dark(0 1px 2px rgb(24 24 23 / 0.04), 0 12px 28px -18px rgb(24 24 23 / 0.14), 0 1px 2px rgb(0 0 0 / 0.36), 0 14px 30px -18px rgb(0 0 0 / 0.6))",
+        "purpose": "Subtle ambient grounding under auth and session summary cards."
+      },
+      {
+        "name": "shadow-tab-active",
+        "value": "light-dark(0 1px 2px rgb(24 24 23 / 0.08), 0 1px 3px rgb(0 0 0 / 0.45))",
+        "purpose": "Micro lift on the selected route tab inside the mode switcher track."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-standard",
+        "value": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "180ms transition curve for focus halos, hover states, and segment switching."
+      }
+    ],
+    "breakpoints": [
+      { "name": "mobile-compact", "value": "30rem (480px)" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Acción principal de ancho completo con altura táctil mínima de 48px.",
+      "html": "<button type=\"button\" class=\"ds-btn-primary\">Iniciar sesión</button>",
+      "css": ".ds-btn-primary { width: 100%; min-height: 3rem; display: inline-flex; align-items: center; justify-content: center; padding: 0 1rem; border-radius: 0.5rem; border: 1px solid transparent; background: var(--accent-fill, #2151d6); color: var(--accent-ink, #ffffff); font-size: 1rem; font-weight: 500; cursor: pointer; transition: background-color 180ms cubic-bezier(0.22, 1, 0.36, 1); } .ds-btn-primary:hover { background: var(--accent-fill-hover, #1b44b8); } .ds-btn-primary:focus-visible { outline: 2px solid var(--accent-primary, #2151d6); outline-offset: 2px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Botón neutro secundario para acciones de salida o soporte como Cerrar sesión.",
+      "html": "<button type=\"button\" class=\"ds-btn-secondary\">Cerrar sesión</button>",
+      "css": ".ds-btn-secondary { width: 100%; min-height: 3rem; display: inline-flex; align-items: center; justify-content: center; padding: 0 1rem; border-radius: 0.5rem; border: 1px solid var(--border-subtle, #e5e5e0); background: var(--surface-subtle, #efefed); color: var(--ink-primary, #181817); font-size: 1rem; font-weight: 500; cursor: pointer; transition: background-color 180ms cubic-bezier(0.22, 1, 0.36, 1), border-color 180ms cubic-bezier(0.22, 1, 0.36, 1); } .ds-btn-secondary:hover { background: var(--surface-hover, #f2f2ef); border-color: var(--border-strong, #c8c8c0); } .ds-btn-secondary:focus-visible { outline: 2px solid var(--accent-primary, #2151d6); outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Campo de entrada a 1rem y altura de 48px con foco cobalto suave.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"ej. lucia.martinez\" />",
+      "css": ".ds-input { width: 100%; min-height: 3rem; padding: 0.5rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--border-subtle, #e5e5e0); background: var(--surface-input, #ffffff); color: var(--ink-primary, #181817); font-size: 1rem; transition: border-color 180ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 180ms cubic-bezier(0.22, 1, 0.36, 1); } .ds-input:hover { border-color: var(--border-strong, #c8c8c0); } .ds-input:focus-visible { outline: none; border-color: var(--accent-primary, #2151d6); box-shadow: 0 0 0 3px var(--accent-focus-halo, rgb(33 81 214 / 0.16)); }"
+    },
+    {
+      "name": "Mode Switcher",
+      "kind": "nav",
+      "refersTo": "mode-switcher",
+      "description": "Conmutador de rutas en dos columnas iguales entre acceso y creación de cuenta.",
+      "html": "<nav class=\"ds-switcher\"><a href=\"#login\" class=\"ds-segment\" aria-current=\"page\">Iniciar sesión</a><a href=\"#register\" class=\"ds-segment\">Crear cuenta</a></nav>",
+      "css": ".ds-switcher { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.25rem; padding: 0.25rem; background: var(--surface-track, #efefed); border: 1px solid var(--border-subtle, #e5e5e0); border-radius: 0.625rem; } .ds-segment { min-height: 3rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500; text-decoration: none; color: var(--ink-secondary, #5a5a54); transition: background-color 180ms cubic-bezier(0.22, 1, 0.36, 1), color 180ms cubic-bezier(0.22, 1, 0.36, 1); } .ds-segment[aria-current=\"page\"] { background: var(--surface-segment-active, #ffffff); color: var(--ink-primary, #181817); font-weight: 600; box-shadow: 0 1px 2px rgb(24 24 23 / 0.08); } .ds-segment:focus-visible { outline: 2px solid var(--accent-primary, #2151d6); outline-offset: 2px; }"
+    },
+    {
+      "name": "Auth Card",
+      "kind": "card",
+      "refersTo": "auth-card",
+      "description": "Contenedor principal de una columna de hasta 420px con borde de 1px y sombra sutil.",
+      "html": "<section class=\"ds-card\"><h1 class=\"ds-h1\">Iniciar sesión</h1><p class=\"ds-sub\">Accede con tu usuario para consultar tus faltas.</p></section>",
+      "css": ".ds-card { width: 100%; max-width: 26.25rem; background: var(--surface-card, #ffffff); border: 1px solid var(--border-subtle, #e5e5e0); border-radius: 0.875rem; padding: 2rem; box-shadow: 0 1px 2px rgb(24 24 23 / 0.04), 0 12px 28px -18px rgb(24 24 23 / 0.14); } .ds-h1 { margin: 0 0 0.375rem; font-size: 1.375rem; font-weight: 600; letter-spacing: -0.025em; color: var(--ink-primary, #181817); } .ds-sub { margin: 0; font-size: 0.875rem; color: var(--ink-secondary, #5a5a54); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Academic Ledger",
+    "overview": "Calculadora de Faltas adopta la claridad editorial y la economía visual de Notion aplicada al seguimiento académico de estudiantes de FP e instituto. La interfaz elimina adornos, reclamos promocionales e ilustraciones de relleno para centrar toda la atención en datos verificables y controles táctiles directos.\n\nCada pantalla se organiza sobre papel neutro cálido y superficies definidas por bordes de un píxel, reservando un único acento azul cobalto para identidad geométrica, foco de teclado, enlace inline y acción principal. Tanto el modo claro como el oscuro funcionan de forma nativa mediante color-scheme: light dark y light-dark().",
+    "keyCharacteristics": [
+      "Lienzo neutro cálido sin saturación superflua ni degradados decorativos.",
+      "Jerarquía tipográfica directa basada en Geist Sans con cifras tabulares en Geist Mono.",
+      "Arquitectura estricta de componentes bajo Atomic Design (atoms -> molecules -> organisms -> templates) gobernada únicamente por tokens CSS.",
+      "Áreas táctiles mínimas de 48 px (3rem) en pestañas, campos, botones, selectores y enlaces secundarios."
+    ],
+    "rules": [
+      {
+        "name": "The Single Accent Rule",
+        "body": "El acento azul cobalto se reserva únicamente para foco, enlace inline, isotipo y el CTA principal de la tarjeta; nunca ocupa grandes superficies ni múltiples acciones rivales.",
+        "section": "colors"
+      },
+      {
+        "name": "The Direct Heading Rule",
+        "body": "Todo h1 abre el bloque sin etiquetas previas (kicker o eyebrow) encima para respetar la lectura editorial inmediata.",
+        "section": "typography"
+      },
+      {
+        "name": "The Hairline-First Rule",
+        "body": "La estructura visual depende de contraste tonal y bordes de 1 px (--border-subtle), evitando sombras pesadas o efectos de cristal (backdrop-filter).",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do utilizar siempre variables CSS de app/tokens.css y clases semánticas de app/components.css manteniendo los componentes presentacionales libres de fetch, lógica de negocio o valores hexadecimales/píxeles fijos.",
+      "Do conservar color-scheme: light dark, altura táctil mínima de 48px y tamaño >= 1rem en todo control de formulario o enlace principal.",
+      "Do mostrar validación solo después de la interacción (:user-invalid + estado tras blur/envío) y eliminar el error tan pronto el valor vuelva a ser válido."
+    ],
+    "donts": [
+      "Don't añadir kicker, eyebrow, degradados decorativos, ilustraciones de relleno ni iconos emoji sobre formularios o tarjetas.",
+      "Don't introducir componentes que mezclen llamadas fetch con átomos/moléculas/organismos presentacionales; toda orquestación reside en components/containers/.",
+      "Don't permitir crear cursos nuevos desde pantallas de autenticación ni emitir mensajes de validación en inglés."
+    ]
+  }
+}
+
