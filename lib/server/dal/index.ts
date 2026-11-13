@@ -2,6 +2,14 @@ import 'server-only';
 
 export { BaseDAL } from './base.dal';
 export {
+  AbsenceDAL,
+  absenceDal,
+  type AbsenceDTO,
+  type AbsenceWithSubjectDTO,
+  type CreateAbsenceInput,
+  type UpdateAbsenceInput,
+} from './absence.dal';
+export {
   CourseDAL,
   courseDal,
   type CourseDTO,
