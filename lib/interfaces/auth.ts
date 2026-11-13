@@ -1,5 +1,7 @@
 import type { JWTPayload } from 'jose';
 
+export type AuthTokenType = 'access' | 'refresh';
+
 export interface JwtUserPayload {
   sub: string;
   name: string;
@@ -8,7 +10,9 @@ export interface JwtUserPayload {
 
 export interface AuthTokenPayload
   extends Omit<JWTPayload, 'sub'>,
-    JwtUserPayload {}
+    JwtUserPayload {
+  tokenType?: AuthTokenType;
+}
 
 export interface JwtTokenDTO {
   id: string;
