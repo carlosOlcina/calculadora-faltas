@@ -1,17 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ServerError, jwtTokenDal } from '@/lib/server/dal';
+import { ServerError, UnauthorizedError, jwtTokenDal } from '@/lib/server/dal';
 import {
+  ACCESS_TOKEN_COOKIE_NAME,
   ACCESS_TOKEN_MAX_AGE_SECONDS,
+  REFRESH_TOKEN_COOKIE_NAME,
   REFRESH_TOKEN_MAX_AGE_SECONDS,
 } from '@/lib/const/auth';
 import {
   signAccessToken,
   verifyAuthToken,
 } from '@/lib/server/jwt';
+import { getCookieValue } from '@/lib/utils/cookies';
 
 export async function POST(request: NextRequest) {
   try {
-    const refreshToken = request.cookies.get('refresh_token')?.value;
+    const refreshToken = getCookieValue(request, REFRESH_TOKEN_COOKIE_NAME);
     if (!refreshToken) {
       return NextResponse.json(
         { error: 'Falta el refresh token', code: 'UNAUTHORIZED' },
@@ -22,11 +25,15 @@ export async function POST(request: NextRequest) {
     let payload;
     try {
       payload = await verifyAuthToken(refreshToken);
-    } catch {
-      return NextResponse.json(
-        { error: 'Refresh token inválido o expirado', code: 'UNAUTHORIZED' },
-        { status: 401 },
-      );
+    } catch (error) {
+      if (error instanceof UnauthorizedError) {
+        return NextResponse.json(
+          { error: 'Refresh token inválido o expirado', code: 'UNAUTHORIZED' },
+          { status: 401 },
+        );
+      }
+
+      throw error;
     }
 
     const storedToken = await jwtTokenDal.findActiveByToken(refreshToken);
@@ -53,7 +60,7 @@ export async function POST(request: NextRequest) {
     });
 
     const response = NextResponse.json({ ok: true }, { status: 200 });
-    response.cookies.set('access_token', accessToken, {
+    response.cookies.set(ACCESS_TOKEN_COOKIE_NAME, accessToken, {
       httpOnly: true,
       sameSite: 'lax',
       path: '/',

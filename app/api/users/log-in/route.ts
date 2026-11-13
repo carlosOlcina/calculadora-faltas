@@ -6,7 +6,9 @@ import {
   userDal,
 } from '@/lib/server/dal';
 import {
+  ACCESS_TOKEN_COOKIE_NAME,
   ACCESS_TOKEN_MAX_AGE_SECONDS,
+  REFRESH_TOKEN_COOKIE_NAME,
   REFRESH_TOKEN_MAX_AGE_SECONDS,
 } from '@/lib/const/auth';
 import {
@@ -67,7 +69,7 @@ export async function POST(request: Request) {
     const isProduction = process.env.NODE_ENV === 'production';
     const response = NextResponse.json({ refreshToken }, { status: 200 });
 
-    response.cookies.set('access_token', accessToken, {
+    response.cookies.set(ACCESS_TOKEN_COOKIE_NAME, accessToken, {
       httpOnly: true,
       sameSite: 'lax',
       path: '/',
@@ -75,7 +77,7 @@ export async function POST(request: Request) {
       maxAge: ACCESS_TOKEN_MAX_AGE_SECONDS,
     });
 
-    response.cookies.set('refresh_token', refreshToken, {
+    response.cookies.set(REFRESH_TOKEN_COOKIE_NAME, refreshToken, {
       httpOnly: true,
       sameSite: 'lax',
       path: '/',
