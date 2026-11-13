@@ -22,6 +22,10 @@ export const userSchemas = {
     password: passwordSchema,
     courseId,
   }),
+  login: z.object({
+    name,
+    password: passwordSchema,
+  }),
   update: updateObjectSchema({
     name: name.optional(),
     password: passwordSchema.optional(),

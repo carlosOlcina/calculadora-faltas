@@ -18,6 +18,10 @@ class ServerEnvConfig {
       process.env.BCRYPT_SALT_ROUNDS,
     );
   }
+
+  get jwtSecret(): string {
+    return parseOrThrow(envSchemas.jwtSecret, process.env.JWT_SECRET);
+  }
 }
 
 export const serverEnv = new ServerEnvConfig();

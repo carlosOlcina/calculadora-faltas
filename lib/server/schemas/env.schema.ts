@@ -20,5 +20,9 @@ export const envSchemas = {
       .max(15, { error: 'BCRYPT_SALT_ROUNDS debe ser un entero entre 4 y 15.' })
       .default(12),
   ),
+  jwtSecret: z
+    .string({ error: 'Falta la variable de entorno de servidor JWT_SECRET.' })
+    .trim()
+    .min(1, { error: 'Falta la variable de entorno de servidor JWT_SECRET.' }),
 } as const;
 
