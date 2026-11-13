@@ -105,6 +105,27 @@ export class UserDAL extends BaseDAL {
     );
   }
 
+  async findAuthByName(name: string): Promise<{
+    id: string;
+    name: string;
+    courseId: string;
+    passwordHash: string;
+  } | null> {
+    const normalizedName = this.validate(userSchemas.name, name);
+
+    return this.execute(() =>
+      this.db.user.findUnique({
+        where: { name: normalizedName },
+        select: {
+          id: true,
+          name: true,
+          courseId: true,
+          passwordHash: true,
+        },
+      }),
+    );
+  }
+
   async listByCourse(courseId: string): Promise<UserDTO[]> {
     const validCourseId = this.validate(userSchemas.courseId, courseId);
 
