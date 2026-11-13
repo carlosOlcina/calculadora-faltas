@@ -1,17 +1,7 @@
 import 'server-only';
-import { SignJWT, jwtVerify, type JWTPayload } from 'jose';
+import { SignJWT, jwtVerify } from 'jose';
+import type { AuthTokenPayload, JwtUserPayload } from '@/lib/interfaces/auth';
 import { serverEnv } from './env';
-
-export interface JwtUserPayload {
-  sub: string;
-  name: string;
-  courseId: string;
-}
-
-export interface AuthTokenPayload extends Omit<JWTPayload, 'sub'>, JwtUserPayload {}
-
-export const ACCESS_TOKEN_MAX_AGE_SECONDS = 60 * 60 * 2; // 2 horas
-export const REFRESH_TOKEN_MAX_AGE_SECONDS = 60 * 60 * 24 * 60; // 60 dias
 
 function getSecretKey(): Uint8Array {
   return new TextEncoder().encode(serverEnv.jwtSecret);

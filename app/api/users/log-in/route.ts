@@ -8,6 +8,8 @@ import {
 import {
   ACCESS_TOKEN_MAX_AGE_SECONDS,
   REFRESH_TOKEN_MAX_AGE_SECONDS,
+} from '@/lib/const/auth';
+import {
   signAccessToken,
   signRefreshToken,
 } from '@/lib/server/jwt';

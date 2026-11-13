@@ -36,6 +36,5 @@ export { PasswordHasher, passwordHasher } from '../password-hasher';
 export {
   JwtTokenDAL,
   jwtTokenDal,
-  type JwtTokenDTO,
 } from './jwt-token.dal';
 

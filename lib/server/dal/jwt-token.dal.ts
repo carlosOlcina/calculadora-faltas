@@ -1,13 +1,6 @@
 import 'server-only';
+import type { JwtTokenDTO } from '@/lib/interfaces/auth';
 import { BaseDAL } from './base.dal';
-
-export interface JwtTokenDTO {
-  id: string;
-  userId: string;
-  token: string;
-  createdAt: Date;
-  revokedAt: Date | null;
-}
 
 /**
  * Capa de acceso a datos para la tabla `jwt` (refresh tokens).
