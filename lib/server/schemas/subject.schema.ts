@@ -7,21 +7,31 @@ import {
   uuidSchema,
 } from './common.schema';
 
+const MAX_POSTGRES_INT4 = 2_147_483_647;
+
 const name = requiredTextSchema('El nombre de la asignatura');
 const courseId = uuidSchema('El id del curso');
-const hours = positiveIntSchema('La cantidad de horas');
+const userId = uuidSchema('El id del usuario');
+const hours = positiveIntSchema('La cantidad de horas').max(MAX_POSTGRES_INT4, {
+  error: 'La cantidad de horas supera el limite permitido.',
+});
 
 export const subjectSchemas = {
   id: uuidSchema('El id de la asignatura'),
   courseId,
+  userId,
+  createBody: z.object({
+    name,
+    hours,
+  }),
   create: z.object({
     name,
-    courseId,
     hours,
+    userId,
+    courseId,
   }),
   update: updateObjectSchema({
     name: name.optional(),
-    courseId: courseId.optional(),
     hours: hours.optional(),
   }),
 } as const;
