@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Course {
+  id         String    @id @default(uuid()) @db.Uuid
+  name       String    @unique @map("nombre")
+  totalHours Int       @map("duracion_horas_total")
+  users      User[]
+  subjects   Subject[]
+
+  @@map("cursos")
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String   @unique @map("nombre")
+  passwordHash String   @map("password_hash")
+  courseId     String   @map("curso_id") @db.Uuid
+  course       Course   @relation(fields: [courseId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@index([courseId])
+  @@map("usuarios")
+}
+
+model Subject {
+  id       String @id @default(uuid()) @db.Uuid
+  name     String @map("nombre")
+  hours    Int    @map("horas")
+  courseId String @map("curso_id") @db.Uuid
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([courseId, name])
+  @@index([courseId])
+  @@map("asignaturas")
+}
+
