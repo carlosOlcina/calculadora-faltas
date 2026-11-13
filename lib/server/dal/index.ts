@@ -30,6 +30,7 @@ export {
   UniqueConstraintError,
   NotFoundError,
   ForeignKeyConstraintError,
+  UnauthorizedError,
   type ServerErrorCode,
 } from '../errors';
 export { PasswordHasher, passwordHasher } from '../password-hasher';

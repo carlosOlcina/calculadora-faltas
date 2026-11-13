@@ -5,7 +5,8 @@ export type ServerErrorCode =
   | 'UNIQUE_CONSTRAINT'
   | 'NOT_FOUND'
   | 'FOREIGN_KEY_CONSTRAINT'
-  | 'DATABASE_ERROR';
+  | 'DATABASE_ERROR'
+  | 'UNAUTHORIZED';
 
 /** Error base de la capa de servidor para ser capturado desde Server Actions. */
 export class ServerError extends Error {
@@ -49,6 +50,12 @@ export class NotFoundError extends ServerError {
 export class ForeignKeyConstraintError extends ServerError {
   constructor(message: string, options?: ErrorOptions) {
     super(message, 'FOREIGN_KEY_CONSTRAINT', 409, options);
+  }
+}
+
+export class UnauthorizedError extends ServerError {
+  constructor(message = 'No autorizado.', options?: ErrorOptions) {
+    super(message, 'UNAUTHORIZED', 401, options);
   }
 }
 
