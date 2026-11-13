@@ -1,5 +1,6 @@
 import 'server-only';
 import { BaseDAL } from './base.dal';
+import { UnauthorizedError } from '../errors';
 import { subjectSchemas } from '../schemas';
 import type { CourseDTO } from './course.dal';
 
@@ -8,6 +9,7 @@ export interface SubjectDTO {
   name: string;
   hours: number;
   courseId: string;
+  userId: string;
 }
 
 export interface SubjectWithCourseDTO extends SubjectDTO {
@@ -16,13 +18,11 @@ export interface SubjectWithCourseDTO extends SubjectDTO {
 
 export interface CreateSubjectInput {
   name: string;
-  courseId: string;
   hours: number;
 }
 
 export interface UpdateSubjectInput {
   name?: string;
-  courseId?: string;
   hours?: number;
 }
 
@@ -31,6 +31,7 @@ const SUBJECT_SELECT = {
   name: true,
   hours: true,
   courseId: true,
+  userId: true,
 } as const;
 
 const SUBJECT_WITH_COURSE_SELECT = {
@@ -46,61 +47,102 @@ const SUBJECT_WITH_COURSE_SELECT = {
 
 /**
  * Capa de acceso a datos para la tabla `asignaturas`.
+ * Todas las operaciones filtran por `userId` para aislar los recursos por usuario.
  */
 export class SubjectDAL extends BaseDAL {
-  async create(input: CreateSubjectInput): Promise<SubjectDTO> {
-    const data = this.validate(subjectSchemas.create, input);
+  async create(userId: string, input: CreateSubjectInput): Promise<SubjectDTO> {
+    const validUserId = this.validate(subjectSchemas.userId, userId);
+    const { name, hours } = this.validate(subjectSchemas.createBody, input);
 
-    return this.execute(() =>
-      this.db.subject.create({
+    return this.execute(async () => {
+      const user = await this.db.user.findUnique({
+        where: { id: validUserId },
+        select: { courseId: true },
+      });
+
+      if (!user) {
+        throw new UnauthorizedError('El usuario autenticado no existe.');
+      }
+
+      const data = this.validate(subjectSchemas.create, {
+        name,
+        hours,
+        userId: validUserId,
+        courseId: user.courseId,
+      });
+
+      return this.db.subject.create({
         data,
         select: SUBJECT_SELECT,
-      }),
-    );
+      });
+    });
   }
 
-  async findById(id: string): Promise<SubjectWithCourseDTO | null> {
+  async findById(
+    id: string,
+    userId: string,
+  ): Promise<SubjectWithCourseDTO | null> {
     const subjectId = this.validate(subjectSchemas.id, id);
+    const validUserId = this.validate(subjectSchemas.userId, userId);
 
     return this.execute(() =>
       this.db.subject.findUnique({
-        where: { id: subjectId },
+        where: { id: subjectId, userId: validUserId },
         select: SUBJECT_WITH_COURSE_SELECT,
       }),
     );
   }
 
-  async listByCourse(courseId: string): Promise<SubjectDTO[]> {
-    const validCourseId = this.validate(subjectSchemas.courseId, courseId);
+  async listByUser(userId: string): Promise<SubjectDTO[]> {
+    const validUserId = this.validate(subjectSchemas.userId, userId);
 
     return this.execute(() =>
       this.db.subject.findMany({
-        where: { courseId: validCourseId },
+        where: { userId: validUserId },
         select: SUBJECT_SELECT,
         orderBy: { name: 'asc' },
       }),
     );
   }
 
-  async update(id: string, input: UpdateSubjectInput): Promise<SubjectDTO> {
+  async listByCourse(courseId: string, userId: string): Promise<SubjectDTO[]> {
+    const validCourseId = this.validate(subjectSchemas.courseId, courseId);
+    const validUserId = this.validate(subjectSchemas.userId, userId);
+
+    return this.execute(() =>
+      this.db.subject.findMany({
+        where: { courseId: validCourseId, userId: validUserId },
+        select: SUBJECT_SELECT,
+        orderBy: { name: 'asc' },
+      }),
+    );
+  }
+
+  async update(
+    id: string,
+    userId: string,
+    input: UpdateSubjectInput,
+  ): Promise<SubjectDTO> {
     const subjectId = this.validate(subjectSchemas.id, id);
+    const validUserId = this.validate(subjectSchemas.userId, userId);
     const data = this.validate(subjectSchemas.update, input);
 
     return this.execute(() =>
       this.db.subject.update({
-        where: { id: subjectId },
+        where: { id: subjectId, userId: validUserId },
         data,
         select: SUBJECT_SELECT,
       }),
     );
   }
 
-  async delete(id: string): Promise<void> {
+  async delete(id: string, userId: string): Promise<void> {
     const subjectId = this.validate(subjectSchemas.id, id);
+    const validUserId = this.validate(subjectSchemas.userId, userId);
 
     await this.execute(() =>
       this.db.subject.delete({
-        where: { id: subjectId },
+        where: { id: subjectId, userId: validUserId },
       }),
     );
   }
