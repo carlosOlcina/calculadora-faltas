@@ -23,6 +23,7 @@
     color: var(--ink-primary);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    overflow-wrap: anywhere;
   }
 
   ::selection {

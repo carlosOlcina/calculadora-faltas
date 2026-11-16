@@ -63,6 +63,10 @@
   --card-max-width: 26.25rem;
   --panel-max-width: 38rem;
   --viewport-gutter: 1rem;
+  --viewport-gutter-lg: clamp(1rem, 3vw, 2.5rem);
+  --subject-card-min-width: 22rem;
+  --kpi-card-min-width: 13rem;
+  --progress-height: 0.375rem;
   --icon-size-sm: 1.125rem;
   --icon-size-md: 1.25rem;
   --brand-mark-size: 1.75rem;
