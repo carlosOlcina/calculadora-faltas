@@ -23,7 +23,6 @@ model User {
   passwordHash String     @map("password_hash")
   courseId     String     @map("curso_id") @db.Uuid
   course       Course     @relation(fields: [courseId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  subjects     Subject[]
   absences     Absence[]
   jwtTokens    JwtToken[]
   createdAt    DateTime   @default(now()) @map("created_at")
@@ -39,13 +38,10 @@ model Subject {
   hours    Int       @map("horas")
   courseId String    @map("curso_id") @db.Uuid
   course   Course    @relation(fields: [courseId], references: [id], onDelete: Restrict, onUpdate: Cascade)
-  userId   String    @map("user_id") @db.Uuid
-  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   absences Absence[]
 
-  @@unique([userId, name])
+  @@unique([courseId, name])
   @@index([courseId])
-  @@index([userId])
   @@map("asignaturas")
 }
 
