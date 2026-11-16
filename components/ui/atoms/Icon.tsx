@@ -4,6 +4,7 @@ export type IconName =
   | 'chevron-down'
   | 'alert-circle'
   | 'check'
+  | 'log-out'
   | 'spinner';
 
 export interface IconProps {
@@ -25,6 +26,11 @@ const ICON_PATHS: Record<IconName, string[]> = {
   'chevron-down': ['M6 9l6 6 6-6'],
   'alert-circle': ['M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z', 'M12 8v4', 'M12 16h.01'],
   check: ['M5 12.5 9.5 17 19 7.5'],
+  'log-out': [
+    'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4',
+    'M16 17l5-5-5-5',
+    'M21 12H9',
+  ],
   spinner: ['M21 12a9 9 0 1 1-6.22-8.56'],
 };
 

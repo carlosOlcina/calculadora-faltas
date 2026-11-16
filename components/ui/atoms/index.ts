@@ -10,6 +10,7 @@ export { InlineLink, type InlineLinkProps } from './InlineLink';
 export { Label, type LabelProps } from './Label';
 export { LiveAnnouncer, type LiveAnnouncerProps } from './LiveAnnouncer';
 export { NavSegmentLink, type NavSegmentLinkProps } from './NavSegmentLink';
+export { ProgressBar, type ProgressBarProps } from './ProgressBar';
 export { Select, type SelectProps } from './Select';
 export { StatusBanner, type StatusBannerProps } from './StatusBanner';
 export { Text, type TextProps } from './Text';

@@ -2,10 +2,12 @@ import type { ButtonHTMLAttributes } from 'react';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary';
+  size?: 'default' | 'compact';
 }
 
 export function Button({
   variant = 'primary',
+  size = 'default',
   type = 'button',
   className,
   children,
@@ -14,7 +16,13 @@ export function Button({
   const classes = ['cf-button', className ?? ''].filter(Boolean).join(' ');
 
   return (
-    <button type={type} data-variant={variant} className={classes} {...props}>
+    <button
+      type={type}
+      data-variant={variant}
+      data-size={size}
+      className={classes}
+      {...props}
+    >
       {children}
     </button>
   );
