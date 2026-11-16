@@ -15,7 +15,6 @@ interface SubjectRecord {
   name: string;
   hours: number;
   courseId: string;
-  userId: string;
 }
 
 interface AbsenceRecord {
@@ -42,8 +41,7 @@ function isSubjectRecord(value: unknown): value is SubjectRecord {
     typeof record.id === 'string' &&
     typeof record.name === 'string' &&
     typeof record.hours === 'number' &&
-    typeof record.courseId === 'string' &&
-    typeof record.userId === 'string'
+    typeof record.courseId === 'string'
   );
 }
 
