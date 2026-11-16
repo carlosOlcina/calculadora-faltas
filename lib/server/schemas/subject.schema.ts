@@ -27,7 +27,6 @@ export const subjectSchemas = {
   create: z.object({
     name,
     hours,
-    userId,
     courseId,
   }),
   update: updateObjectSchema({

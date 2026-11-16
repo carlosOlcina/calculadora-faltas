@@ -48,7 +48,6 @@ const ABSENCE_WITH_SUBJECT_SELECT = {
       name: true,
       hours: true,
       courseId: true,
-      userId: true,
     },
   },
 } as const;
@@ -62,8 +61,15 @@ export class AbsenceDAL extends BaseDAL {
     subjectId: string,
     userId: string,
   ): Promise<void> {
-    const subject = await this.db.subject.findUnique({
-      where: { id: subjectId, userId },
+    const subject = await this.db.subject.findFirst({
+      where: {
+        id: subjectId,
+        course: {
+          users: {
+            some: { id: userId },
+          },
+        },
+      },
       select: { id: true },
     });
 
