@@ -3,7 +3,7 @@ import { BrandHeader } from '../molecules';
 
 export interface AuthPageTemplateProps {
   cardLabel: string;
-  size?: 'default' | 'wide';
+  size?: 'default' | 'wide' | 'full';
   topSlot?: ReactNode;
   children: ReactNode;
 }
@@ -15,10 +15,10 @@ export function AuthPageTemplate({
   children,
 }: AuthPageTemplateProps) {
   return (
-    <main className="cf-page">
+    <main className="cf-page" data-size={size}>
       <div className="cf-shell" data-size={size}>
-        <BrandHeader />
-        <section className="cf-card" aria-label={cardLabel}>
+        {size !== 'full' ? <BrandHeader /> : null}
+        <section className="cf-card" data-size={size} aria-label={cardLabel}>
           {topSlot}
           {children}
         </section>

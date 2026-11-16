@@ -52,10 +52,7 @@ export function LoginForm({
 }: LoginFormProps) {
   return (
     <>
-      <AuthFormHeader
-        title="Iniciar sesión"
-        subtitle="Accede con tu usuario para consultar tus faltas."
-      />
+      <AuthFormHeader title="Iniciar sesión" />
 
       {serverError ? <StatusBanner tone="error">{serverError}</StatusBanner> : null}
 

@@ -70,10 +70,7 @@ export function RegisterForm({
 
   return (
     <>
-      <AuthFormHeader
-        title="Crear cuenta"
-        subtitle="Elige tu curso y configura tu usuario para empezar."
-      />
+      <AuthFormHeader title="Crear cuenta" />
 
       {bannerMessage ? <StatusBanner tone="error">{bannerMessage}</StatusBanner> : null}
 
@@ -119,7 +116,6 @@ export function RegisterForm({
           autoComplete="new-password"
           placeholder="Crea una contraseña"
           enterKeyHint="done"
-          hint="Máximo 72 bytes UTF-8 (aprox. 72 caracteres)."
           disabled={pending || catalogEmpty}
           error={fieldErrors.password}
         />

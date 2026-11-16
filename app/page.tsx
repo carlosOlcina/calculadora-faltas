@@ -28,8 +28,8 @@ async function SessionGate() {
 
 export default function HomePage() {
   return (
-    <AuthPageTemplate cardLabel="Resumen de sesión" size="wide">
-      <Suspense fallback={<AuthCardSkeleton fieldCount={2} />}>
+    <AuthPageTemplate cardLabel="Resumen de sesión" size="full">
+      <Suspense fallback={<AuthCardSkeleton variant="workspace" />}>
         <SessionGate />
       </Suspense>
     </AuthPageTemplate>
