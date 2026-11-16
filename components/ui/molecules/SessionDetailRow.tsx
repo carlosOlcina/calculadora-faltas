@@ -1,4 +1,4 @@
-import { Badge, Text } from '../atoms';
+import { Text } from '../atoms';
 
 export interface SessionDetailRowProps {
   label: string;
@@ -13,16 +13,16 @@ export function SessionDetailRow({
 }: SessionDetailRowProps) {
   return (
     <div className="cf-summary-row">
-      <Text as="span" variant="muted">
+      <Text as="span" variant="hint">
         {label}
       </Text>
-      {mono ? (
-        <Badge mono>{value}</Badge>
-      ) : (
-        <Text as="span" variant="strong">
-          {value}
-        </Text>
-      )}
+      <Text
+        as="span"
+        variant="strong"
+        className={mono ? 'cf-text-mono' : undefined}
+      >
+        {value}
+      </Text>
     </div>
   );
 }

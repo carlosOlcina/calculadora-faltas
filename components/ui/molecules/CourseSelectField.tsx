@@ -1,5 +1,5 @@
 import type { ChangeEventHandler, FocusEventHandler, Ref } from 'react';
-import { FieldMessage, Icon, Label, Select, Text } from '../atoms';
+import { FieldMessage, Icon, Label, Select } from '../atoms';
 
 export interface CourseOption {
   id: string;
@@ -32,10 +32,7 @@ export function CourseSelectField({
   disabled = false,
   error,
 }: CourseSelectFieldProps) {
-  const selectedCourse = courses.find((course) => course.id === value);
-  const hintId = `${id}-hint`;
   const errorId = error ? `${id}-error` : undefined;
-  const describedBy = [hintId, errorId].filter(Boolean).join(' ');
 
   return (
     <div className="cf-field">
@@ -51,7 +48,7 @@ export function CourseSelectField({
           required
           disabled={disabled || courses.length === 0}
           aria-invalid={error ? true : undefined}
-          aria-describedby={describedBy}
+          aria-describedby={errorId}
         >
           <option value="">Selecciona tu curso</option>
           {courses.map((course) => (
@@ -69,19 +66,6 @@ export function CourseSelectField({
           {error}
         </FieldMessage>
       ) : null}
-      <FieldMessage id={hintId} tone="hint">
-        {selectedCourse ? (
-          <>
-            Carga lectiva del curso:{' '}
-            <Text as="span" variant="mono">
-              {selectedCourse.totalHours} h
-            </Text>
-            .
-          </>
-        ) : (
-          'Solo puedes inscribirte en un curso disponible del catálogo.'
-        )}
-      </FieldMessage>
     </div>
   );
 }

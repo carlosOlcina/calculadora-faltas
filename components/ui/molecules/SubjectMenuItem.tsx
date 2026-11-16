@@ -28,10 +28,15 @@ export function SubjectMenuItem({
   disabled,
   onAddAbsence,
 }: SubjectMenuItemProps) {
+  const isExceeded = subject.missedHours > subject.maxAllowedHours;
+
   return (
-    <li className="cf-subject-item">
+    <li
+      className="cf-subject-item"
+      data-tone={isExceeded ? 'error' : 'neutral'}
+    >
       <div className="cf-subject-main">
-        <Text as="span" variant="strong">
+        <Text as="span" variant="strong" className="cf-subject-name">
           {subject.name}
         </Text>
         <Badge mono>{subject.totalHours} h</Badge>
