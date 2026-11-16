@@ -10,5 +10,19 @@ export {
 } from './CourseSelectField';
 export { FormField, type FormFieldProps } from './FormField';
 export { PasswordField, type PasswordFieldProps } from './PasswordField';
+export {
+  QuickAbsenceControl,
+  type QuickAbsenceControlProps,
+  type QuickAbsenceHours,
+} from './QuickAbsenceControl';
 export { SessionDetailRow, type SessionDetailRowProps } from './SessionDetailRow';
+export {
+  SubjectAbsenceMetrics,
+  type SubjectAbsenceMetricsProps,
+} from './SubjectAbsenceMetrics';
+export {
+  SubjectMenuItem,
+  type SubjectMenuItemProps,
+  type SubjectSummaryItem,
+} from './SubjectMenuItem';
 
