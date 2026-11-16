@@ -161,9 +161,14 @@ La paleta combina un fondo de papel cálido, superficies ligeramente escalonadas
 
 ## Layout
 
-Los flujos de entrada y resumen se centran verticalmente en escritorio sobre una única columna contenida en `26.25rem` (`420px`) con relleno interno de `2rem` (`32px`), margen de seguridad lateral constante de `1rem` (`16px`) y separación vertical constante entre campos (`1.25rem` / `20px`).
+Los flujos de autenticación (`/login` y `/register`) se centran verticalmente en escritorio sobre una única columna contenida en `26.25rem` (`420px`) con relleno interno de `2rem` (`32px`), margen lateral de `1rem` (`16px`) y separación vertical constante entre campos (`1.25rem` / `20px`).
 
-En pantallas compactas (`<= 30rem` / `480px`), el contenedor alinea el inicio cerca del borde superior (`1.5rem` / `24px`) y reduce el relleno interno de la tarjeta a `1.5rem` (`24px`) garantizando cero desbordamiento horizontal (`scrollWidth === innerWidth`).
+La vista principal autenticado (`/`) utiliza todo el ancho disponible en portátil y escritorio mediante un espacio de trabajo a pantalla completa (`data-size="full"`) sin tarjeta contenedora exterior:
+- **Barra superior (`cf-topbar`)**: cabecera a ancho completo con identidad de marca a la izquierda, nombre de usuario y botón compacto `Cerrar sesión` a la derecha, adaptándose con salto de línea limpio en móvil.
+- **Franja de resumen (`cf-summary-list`)**: cuadrícula fluida (`repeat(auto-fit, minmax(min(100%, 13rem), 1fr))`) con tarjetas individuales de métrica (`Curso`, `Carga lectiva`, `Faltas acumuladas` y `Asignaturas en límite`).
+- **Cuadrícula de asignaturas (`cf-subjects-menu`)**: distribución responsiva a ancho completo (`repeat(auto-fit, minmax(min(100%, 22rem), 1fr))`) con relleno lateral fluido (`clamp(1rem, 3vw, 2.5rem)`), evitando anidar tarjetas dentro de tarjetas.
+
+En pantallas compactas (`<= 30rem` / `480px`), las pantallas de acceso alinean el inicio cerca del borde superior (`1.5rem` / `24px`) y reducen el relleno interno de la tarjeta a `1.5rem` (`24px`) garantizando cero desbordamiento horizontal hasta `320px`.
 
 ## Elevation & Depth
 
@@ -199,9 +204,9 @@ Cada componente implementa estrictamente la jerarquía Atomic Design (`atoms`, `
 - **Mode Switcher:** Carril de dos columnas iguales (`--surface-track`) con relleno de `0.25rem` y segmentos de `48px` de altura; el enlace activo recibe superficie elevada (`--surface-segment-active`) y `aria-current="page"`.
 - **Footer Inline Links:** Enlaces con caja flex centrada y altura táctil mínima garantizada de `3rem` (`48px`).
 
-### Cards & Summary List
+### Cards, Progress & Summary Strip
 - **Auth Card:** Tarjeta única con borde de 1 px, `padding: 2rem` (`1.5rem` en móvil) y separación de secciones de `1.5rem`.
-- **Summary List:** Lista neutra para sesión activa con filas flexibles, divisor superior de 1 px entre filas, texto en alto contraste para nombres de curso y `Badge` monospace tabular para horas oficiales.
+- **Summary Strip & Subject Cards:** En `/`, las métricas generales y cada asignatura ocupan tarjetas elevadas independientes de 1 px (`--surface-card`) con barra nativa `<progress>` (`--accent-primary`, o `--status-error-border` al superar el 15 %), badges tabulares y botonera rápida (`+1 h`, `+2 h`, `+3 h`) en tres columnas iguales.
 
 ## Do's and Don'ts
 
@@ -209,9 +214,10 @@ Cada componente implementa estrictamente la jerarquía Atomic Design (`atoms`, `
 - **Do** utilizar siempre variables CSS de `app/tokens.css` y clases semánticas de `app/components.css` manteniendo los componentes presentacionales libres de `fetch`, lógica de negocio o valores hexadecimales/píxeles fijos.
 - **Do** conservar `color-scheme: light dark`, altura táctil mínima de `48px` y tamaño `>= 1rem` en todo control de formulario o enlace principal.
 - **Do** mostrar validación solo después de la interacción (`:user-invalid` + estado tras blur/envío) y eliminar el error tan pronto el valor vuelva a ser válido.
+- **Do** mantener los textos breves, directos y libres de jerga técnica o subtítulos redundantes sobre formularios y tarjetas.
 
 ### Don't:
-- **Don't** añadir `kicker`, `eyebrow`, degradados decorativos, ilustraciones de relleno ni iconos emoji sobre formularios o tarjetas.
+- **Don't** añadir `kicker`, `eyebrow`, degradados decorativos, ilustraciones de relleno, tarjetas anidadas dentro de tarjetas ni iconos emoji sobre formularios o tarjetas.
 - **Don't** introducir componentes que mezclen llamadas `fetch` con átomos/moléculas/organismos presentacionales; toda orquestación reside en `components/containers/`.
 - **Don't** permitir crear cursos nuevos desde pantallas de autenticación ni emitir mensajes de validación en inglés.
 
