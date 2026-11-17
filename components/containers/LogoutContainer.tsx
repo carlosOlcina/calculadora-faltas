@@ -15,6 +15,7 @@ interface SubjectRecord {
   name: string;
   hours: number;
   courseId: string;
+  convalidate?: boolean;
 }
 
 interface AbsenceRecord {
