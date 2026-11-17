@@ -27,10 +27,12 @@ export interface SessionOverviewCardProps {
   subjects: SubjectSummaryItem[];
   loadingSubjects: boolean;
   pendingAbsence: PendingAbsenceState | null;
+  pendingConvalidationId: string | null;
   errorMessage: string | null;
   liveMessage: string;
   pendingLogout: boolean;
   onAddAbsence: (subjectId: string, hours: QuickAbsenceHours) => void;
+  onToggleConvalidate: (subjectId: string, nextConvalidated: boolean) => void;
   onLogout: () => void;
 }
 
@@ -41,21 +43,28 @@ export function SessionOverviewCard({
   subjects,
   loadingSubjects,
   pendingAbsence,
+  pendingConvalidationId,
   errorMessage,
   liveMessage,
   pendingLogout,
   onAddAbsence,
+  onToggleConvalidate,
   onLogout,
 }: SessionOverviewCardProps) {
-  const totalMissedHours = subjects.reduce(
+  const activeSubjects = subjects.filter((subject) => !subject.convalidated);
+  const convalidatedHours = subjects
+    .filter((subject) => subject.convalidated)
+    .reduce((sum, subject) => sum + subject.totalHours, 0);
+  const effectiveCourseTotalHours = Math.max(0, courseTotalHours - convalidatedHours);
+  const totalMissedHours = activeSubjects.reduce(
     (sum, subject) => sum + subject.missedHours,
     0,
   );
-  const totalMaxAllowedHours = subjects.reduce(
+  const totalMaxAllowedHours = activeSubjects.reduce(
     (sum, subject) => sum + subject.maxAllowedHours,
     0,
   );
-  const exceededCount = subjects.filter(
+  const exceededCount = activeSubjects.filter(
     (subject) => subject.missedHours > subject.maxAllowedHours,
   ).length;
 
@@ -93,7 +102,11 @@ export function SessionOverviewCard({
           <SessionDetailRow label="Curso" value={courseName} />
           <SessionDetailRow
             label="Carga lectiva"
-            value={`${courseTotalHours} h`}
+            value={
+              loadingSubjects
+                ? `${courseTotalHours} h`
+                : `${effectiveCourseTotalHours} h`
+            }
             mono
           />
           <SessionDetailRow
@@ -108,7 +121,9 @@ export function SessionOverviewCard({
           <SessionDetailRow
             label="Asignaturas en límite"
             value={
-              loadingSubjects ? '…' : `${exceededCount} de ${subjects.length}`
+              loadingSubjects
+                ? '…'
+                : `${exceededCount} de ${activeSubjects.length}`
             }
             mono
           />
@@ -150,10 +165,12 @@ export function SessionOverviewCard({
                       ? pendingAbsence.hours
                       : null
                   }
+                  pendingConvalidation={pendingConvalidationId === subject.id}
                   disabled={
                     pendingLogout || pendingAbsence?.subjectId === subject.id
                   }
                   onAddAbsence={onAddAbsence}
+                  onToggleConvalidate={onToggleConvalidate}
                 />
               ))}
             </ul>
