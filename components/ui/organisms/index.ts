@@ -5,4 +5,9 @@ export {
   type PendingAbsenceState,
   type SessionOverviewCardProps,
 } from './SessionOverviewCard';
+export {
+  SubjectDetailView,
+  type SubjectDetailInfo,
+  type SubjectDetailViewProps,
+} from './SubjectDetailView';
 

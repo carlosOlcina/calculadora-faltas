@@ -7,4 +7,8 @@ export {
   RegisterContainer,
   type RegisterContainerProps,
 } from './RegisterContainer';
+export {
+  SubjectDetailContainer,
+  type SubjectDetailContainerProps,
+} from './SubjectDetailContainer';
 

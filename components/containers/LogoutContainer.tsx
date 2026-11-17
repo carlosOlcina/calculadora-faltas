@@ -184,15 +184,22 @@ export function SessionOverviewContainer({
     };
   }, [router]);
 
-  const hoursBySubject = new Map<string, number>();
+  const unjustifiedHoursBySubject = new Map<string, number>();
+  const justifiedHoursBySubject = new Map<string, number>();
   for (const absence of absences) {
-    const current = hoursBySubject.get(absence.subjectId) ?? 0;
-    hoursBySubject.set(absence.subjectId, current + absence.hoursMissed);
+    if (absence.justified) {
+      const current = justifiedHoursBySubject.get(absence.subjectId) ?? 0;
+      justifiedHoursBySubject.set(absence.subjectId, current + absence.hoursMissed);
+    } else {
+      const current = unjustifiedHoursBySubject.get(absence.subjectId) ?? 0;
+      unjustifiedHoursBySubject.set(absence.subjectId, current + absence.hoursMissed);
+    }
   }
 
   const subjectSummaries: SubjectSummaryItem[] = subjects.map((subject) => {
     const maxAllowedHours = Math.floor(subject.hours * 0.15);
-    const missedHours = hoursBySubject.get(subject.id) ?? 0;
+    const missedHours = unjustifiedHoursBySubject.get(subject.id) ?? 0;
+    const justifiedHours = justifiedHoursBySubject.get(subject.id) ?? 0;
     const remainingHours = Math.max(0, maxAllowedHours - missedHours);
     const currentPercentage =
       subject.hours > 0
@@ -204,12 +211,17 @@ export function SessionOverviewContainer({
       name: subject.name,
       totalHours: subject.hours,
       missedHours,
+      justifiedHours,
       maxAllowedHours,
       currentPercentage,
       remainingHours,
       convalidated: Boolean(subject.convalidate),
     };
   });
+
+  const handleViewDetails = (subjectId: string) => {
+    router.push(`/subjects/${subjectId}`);
+  };
 
   const handleAddAbsence = async (
     subjectId: string,
@@ -398,6 +410,7 @@ export function SessionOverviewContainer({
       errorMessage={errorMessage}
       liveMessage={liveMessage}
       pendingLogout={pendingLogout}
+      onViewDetails={handleViewDetails}
       onAddAbsence={handleAddAbsence}
       onToggleConvalidate={handleToggleConvalidate}
       onLogout={handleLogout}

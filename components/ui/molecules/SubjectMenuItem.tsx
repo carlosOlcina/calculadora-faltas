@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState, type MouseEvent } from 'react';
 import { Badge, Text } from '../atoms';
 import type { ContextMenuPointEvent } from './contextMenuDom';
@@ -15,6 +16,7 @@ export interface SubjectSummaryItem {
   name: string;
   totalHours: number;
   missedHours: number;
+  justifiedHours: number;
   maxAllowedHours: number;
   currentPercentage: number;
   remainingHours: number;
@@ -26,6 +28,7 @@ export interface SubjectMenuItemProps {
   pendingHours: QuickAbsenceHours | null;
   pendingConvalidation: boolean;
   disabled: boolean;
+  onViewDetails: (subjectId: string) => void;
   onAddAbsence: (subjectId: string, hours: QuickAbsenceHours) => void;
   onToggleConvalidate: (subjectId: string, nextConvalidated: boolean) => void;
 }
@@ -35,6 +38,7 @@ export function SubjectMenuItem({
   pendingHours,
   pendingConvalidation,
   disabled,
+  onViewDetails,
   onAddAbsence,
   onToggleConvalidate,
 }: SubjectMenuItemProps) {
@@ -60,7 +64,12 @@ export function SubjectMenuItem({
     >
       <div className="cf-subject-main">
         <Text as="span" variant="strong" className="cf-subject-name">
-          {subject.name}
+          <Link
+            href={`/subjects/${subject.id}`}
+            className="cf-subject-card-link"
+          >
+            {subject.name}
+          </Link>
         </Text>
         <div className="cf-subject-header-actions">
           {subject.convalidated ? <Badge>Convalidada</Badge> : null}
@@ -72,6 +81,7 @@ export function SubjectMenuItem({
             pending={pendingConvalidation}
             disabled={disabled}
             contextMenuEvent={contextMenuEvent}
+            onViewDetails={onViewDetails}
             onToggleConvalidate={onToggleConvalidate}
           />
         </div>
@@ -80,6 +90,7 @@ export function SubjectMenuItem({
       <SubjectAbsenceMetrics
         totalHours={subject.totalHours}
         missedHours={subject.missedHours}
+        justifiedHours={subject.justifiedHours}
         maxAllowedHours={subject.maxAllowedHours}
         currentPercentage={subject.currentPercentage}
         remainingHours={subject.remainingHours}

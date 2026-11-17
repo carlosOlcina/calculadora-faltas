@@ -1,3 +1,13 @@
+export {
+  AbsenceFilterBar,
+  type AbsenceFilterBarProps,
+  type AbsenceFilterValue,
+} from './AbsenceFilterBar';
+export {
+  AbsenceListItem,
+  type AbsenceItemData,
+  type AbsenceListItemProps,
+} from './AbsenceListItem';
 export { AuthCardSkeleton, type AuthCardSkeletonProps } from './AuthCardSkeleton';
 export { AuthFormFooter, type AuthFormFooterProps } from './AuthFormFooter';
 export { AuthFormHeader, type AuthFormHeaderProps } from './AuthFormHeader';
@@ -29,4 +39,8 @@ export {
   type SubjectMenuItemProps,
   type SubjectSummaryItem,
 } from './SubjectMenuItem';
+export {
+  SubjectStatsPanel,
+  type SubjectStatsPanelProps,
+} from './SubjectStatsPanel';
 
