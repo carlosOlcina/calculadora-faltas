@@ -31,6 +31,7 @@ export interface SessionOverviewCardProps {
   errorMessage: string | null;
   liveMessage: string;
   pendingLogout: boolean;
+  onViewDetails: (subjectId: string) => void;
   onAddAbsence: (subjectId: string, hours: QuickAbsenceHours) => void;
   onToggleConvalidate: (subjectId: string, nextConvalidated: boolean) => void;
   onLogout: () => void;
@@ -47,6 +48,7 @@ export function SessionOverviewCard({
   errorMessage,
   liveMessage,
   pendingLogout,
+  onViewDetails,
   onAddAbsence,
   onToggleConvalidate,
   onLogout,
@@ -169,6 +171,7 @@ export function SessionOverviewCard({
                   disabled={
                     pendingLogout || pendingAbsence?.subjectId === subject.id
                   }
+                  onViewDetails={onViewDetails}
                   onAddAbsence={onAddAbsence}
                   onToggleConvalidate={onToggleConvalidate}
                 />
