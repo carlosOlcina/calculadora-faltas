@@ -541,20 +541,37 @@
   justify-content: space-between;
   gap: var(--space-4);
   min-inline-size: 0;
+  transition:
+    background-color var(--motion-duration) var(--motion-ease),
+    border-color var(--motion-duration) var(--motion-ease),
+    box-shadow var(--motion-duration) var(--motion-ease);
 }
 
 .cf-subject-item[data-tone="error"] {
   border-color: var(--status-error-border);
 }
 
+.cf-subject-item[data-convalidated="true"] {
+  background-color: var(--surface-subtle);
+  border-color: var(--border-subtle);
+  box-shadow: none;
+}
+
 .cf-subject-main {
   width: 100%;
   display: flex;
   flex-direction: row;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
   min-inline-size: 0;
+}
+
+.cf-subject-header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  flex-shrink: 0;
 }
 
 .cf-subject-name {
@@ -565,11 +582,189 @@
   min-inline-size: 0;
 }
 
+.cf-subject-item[data-convalidated="true"] .cf-subject-name {
+  color: var(--ink-secondary);
+}
+
+.cf-subject-item[data-convalidated="true"] .cf-subject-metrics {
+  opacity: var(--opacity-convalidated);
+}
+
+.cf-subject-item[data-convalidated="true"] .cf-badge[data-tone="error"] {
+  border-color: var(--border-subtle);
+  background-color: var(--surface-subtle);
+  color: var(--ink-secondary);
+}
+
+.cf-subject-item[data-convalidated="true"] .cf-progress[data-tone]::-webkit-progress-value {
+  background-color: var(--ink-tertiary);
+}
+
+.cf-subject-item[data-convalidated="true"] .cf-progress[data-tone]::-moz-progress-bar {
+  background-color: var(--ink-tertiary);
+}
+
+.cf-subject-item[data-convalidated="true"] .cf-quick-absence-btn:disabled {
+  cursor: not-allowed;
+  opacity: var(--opacity-convalidated);
+}
+
 @container subject-card (inline-size < 18rem) {
   .cf-subject-main {
     flex-direction: column;
     align-items: flex-start;
   }
+
+  .cf-subject-header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+.cf-menu-trigger {
+  width: var(--control-height);
+  min-height: var(--control-height);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background-color: transparent;
+  color: var(--ink-secondary);
+  cursor: pointer;
+  transition:
+    background-color var(--motion-duration) var(--motion-ease),
+    border-color var(--motion-duration) var(--motion-ease),
+    color var(--motion-duration) var(--motion-ease);
+}
+
+.cf-menu-trigger:hover:not(:disabled) {
+  background-color: var(--surface-hover);
+  color: var(--ink-primary);
+}
+
+.cf-menu-trigger[aria-expanded="true"] {
+  background-color: var(--surface-subtle);
+  border-color: var(--border-subtle);
+  color: var(--ink-primary);
+}
+
+.cf-menu-trigger:focus-visible {
+  outline: var(--focus-ring-width) solid var(--accent-primary);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.cf-menu-trigger:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: wait;
+}
+
+.cf-context-menu-popover {
+  min-inline-size: var(--menu-min-width);
+  padding: var(--space-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background-color: var(--surface-card);
+  color: var(--ink-primary);
+  box-shadow: var(--shadow-card);
+}
+
+.cf-context-menu-popover:focus {
+  outline: none;
+}
+
+@supports (position-area: block-end) {
+  .cf-context-menu-popover:not([data-positioned="point"]) {
+    inset: auto;
+    margin: 0;
+    margin-block-start: var(--menu-offset);
+    position-area: block-end span-inline-start;
+    position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline;
+  }
+}
+
+.cf-context-menu-popover[data-positioned="point"] {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  left: var(--menu-x, 0px);
+  top: var(--menu-y, 0px);
+}
+
+@supports not (position-area: block-end) {
+  .cf-context-menu-popover {
+    position: fixed;
+    inset: auto;
+    margin: 0;
+    left: var(--menu-x, 0px);
+    top: var(--menu-y, 0px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cf-context-menu-popover {
+    opacity: 0;
+    translate: 0 calc(-1 * var(--menu-offset));
+    transition: opacity, translate, display, overlay;
+    transition-duration: var(--menu-motion-duration);
+    transition-timing-function: var(--motion-ease);
+    transition-behavior: allow-discrete;
+  }
+
+  .cf-context-menu-popover:is(:popover-open, .\:popover-open) {
+    opacity: 1;
+    translate: 0 0;
+
+    @starting-style {
+      opacity: 0;
+      translate: 0 calc(-1 * var(--menu-offset));
+    }
+  }
+}
+
+.cf-context-menu {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.cf-context-menu-item {
+  width: 100%;
+  min-height: var(--control-height);
+  padding-inline: var(--space-3);
+  padding-block: var(--space-2);
+  border: 0;
+  border-radius: var(--radius-md);
+  background-color: transparent;
+  color: var(--ink-primary);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  line-height: var(--leading-tight);
+  text-align: start;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  transition:
+    background-color var(--motion-duration) var(--motion-ease),
+    color var(--motion-duration) var(--motion-ease);
+}
+
+.cf-context-menu-item:hover:not(:disabled) {
+  background-color: var(--surface-hover);
+}
+
+.cf-context-menu-item:focus-visible {
+  outline: var(--focus-ring-width) solid var(--accent-primary);
+  outline-offset: calc(-1 * var(--focus-ring-width));
+  background-color: var(--surface-hover);
+}
+
+.cf-context-menu-item:disabled {
+  opacity: var(--opacity-disabled);
+  cursor: wait;
 }
 
 .cf-subject-metrics {
@@ -785,12 +980,18 @@
   .cf-subject-item,
   .cf-subjects-empty,
   .cf-quick-absence-btn,
+  .cf-context-menu-popover,
   .cf-badge,
   .cf-progress {
     border: 1px solid ButtonText;
     background-color: Canvas;
     color: CanvasText;
     box-shadow: none;
+  }
+
+  .cf-subject-item[data-convalidated="true"] {
+    border-color: GrayText;
+    color: GrayText;
   }
 
   .cf-progress::-webkit-progress-value {
@@ -811,6 +1012,8 @@
   .cf-segment:focus-visible,
   .cf-button:focus-visible,
   .cf-quick-absence-btn:focus-visible,
+  .cf-menu-trigger:focus-visible,
+  .cf-context-menu-item:focus-visible,
   .cf-input:focus-visible,
   .cf-select:focus-visible,
   .cf-input-action:focus-visible,
