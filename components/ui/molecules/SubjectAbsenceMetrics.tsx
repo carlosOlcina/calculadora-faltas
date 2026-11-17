@@ -3,6 +3,7 @@ import { Badge, ProgressBar, Text } from '../atoms';
 export interface SubjectAbsenceMetricsProps {
   totalHours?: number;
   missedHours: number;
+  justifiedHours?: number;
   maxAllowedHours: number;
   currentPercentage: number;
   remainingHours: number;
@@ -19,6 +20,7 @@ function formatPercentage(value: number): string {
 
 export function SubjectAbsenceMetrics({
   missedHours,
+  justifiedHours = 0,
   maxAllowedHours,
   currentPercentage,
   remainingHours,
@@ -32,7 +34,7 @@ export function SubjectAbsenceMetrics({
         value={missedHours}
         max={maxAllowedHours}
         tone={isExceeded ? 'error' : 'neutral'}
-        label={`Progreso de faltas: ${missedHours} de ${maxAllowedHours} horas`}
+        label={`Progreso de faltas injustificadas: ${missedHours} de ${maxAllowedHours} horas`}
       />
       <div className="cf-subject-metrics-row">
         <div className="cf-subject-metrics-badges">
@@ -42,6 +44,11 @@ export function SubjectAbsenceMetrics({
           <Badge mono>
             {missedHours} / {maxAllowedHours} h
           </Badge>
+          {justifiedHours > 0 ? (
+            <Badge mono tone="success">
+              {justifiedHours} h justif.
+            </Badge>
+          ) : null}
         </div>
         <Text as="span" variant="hint">
           {isExceeded

@@ -11,6 +11,7 @@ export interface SubjectContextMenuProps {
   pending: boolean;
   disabled: boolean;
   contextMenuEvent: ContextMenuPointEvent | null;
+  onViewDetails: (subjectId: string) => void;
   onToggleConvalidate: (subjectId: string, nextConvalidated: boolean) => void;
 }
 
@@ -21,6 +22,7 @@ export function SubjectContextMenu({
   pending,
   disabled,
   contextMenuEvent,
+  onViewDetails,
   onToggleConvalidate,
 }: SubjectContextMenuProps) {
   const baseId = useId();
@@ -32,6 +34,11 @@ export function SubjectContextMenu({
     handleTriggerPointerDown, handleTriggerClick, handleTriggerKeyDown,
     handlePopoverKeyDown, handleItemPointerMove,
   } = useSubjectContextMenu(contextMenuEvent, isActionDisabled);
+
+  const handleDetailsAction = (event: MouseEvent<HTMLButtonElement>) => {
+    closeFromItem(event.detail !== 0);
+    onViewDetails(subjectId);
+  };
 
   const handleAction = (event: MouseEvent<HTMLButtonElement>) => {
     closeFromItem(event.detail !== 0);
@@ -71,6 +78,16 @@ export function SubjectContextMenu({
           className="cf-context-menu"
           {...({ focusgroup: 'menu nomemory' } as Record<string, string>)}
         >
+          <button
+            type="button"
+            className="cf-context-menu-item"
+            disabled={isActionDisabled}
+            onPointerMove={handleItemPointerMove}
+            onClick={handleDetailsAction}
+          >
+            <Icon name="file-text" />
+            <span>Ver detalles</span>
+          </button>
           <button
             type="button"
             className="cf-context-menu-item"
