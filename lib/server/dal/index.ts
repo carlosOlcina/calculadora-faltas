@@ -20,7 +20,9 @@ export {
   SubjectDAL,
   subjectDal,
   type SubjectDTO,
+  type UserSubjectDTO,
   type SubjectWithCourseDTO,
+  type ConvalidatedSubjectDTO,
   type CreateSubjectInput,
   type UpdateSubjectInput,
 } from './subject.dal';
