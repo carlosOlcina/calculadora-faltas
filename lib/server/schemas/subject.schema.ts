@@ -9,6 +9,7 @@ import {
 
 const MAX_POSTGRES_INT4 = 2_147_483_647;
 
+const id = uuidSchema('El id de la asignatura');
 const name = requiredTextSchema('El nombre de la asignatura');
 const courseId = uuidSchema('El id del curso');
 const userId = uuidSchema('El id del usuario');
@@ -17,7 +18,7 @@ const hours = positiveIntSchema('La cantidad de horas').max(MAX_POSTGRES_INT4, {
 });
 
 export const subjectSchemas = {
-  id: uuidSchema('El id de la asignatura'),
+  id,
   courseId,
   userId,
   createBody: z.object({
@@ -32,6 +33,10 @@ export const subjectSchemas = {
   update: updateObjectSchema({
     name: name.optional(),
     hours: hours.optional(),
+  }),
+  convalidate: z.object({
+    userId,
+    subjectId: id,
   }),
 } as const;
 
