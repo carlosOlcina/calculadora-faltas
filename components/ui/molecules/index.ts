@@ -21,6 +21,10 @@ export {
   type SubjectAbsenceMetricsProps,
 } from './SubjectAbsenceMetrics';
 export {
+  SubjectContextMenu,
+  type SubjectContextMenuProps,
+} from './SubjectContextMenu';
+export {
   SubjectMenuItem,
   type SubjectMenuItemProps,
   type SubjectSummaryItem,

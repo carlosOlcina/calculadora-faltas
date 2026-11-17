@@ -15,6 +15,7 @@ interface SubjectRecord {
   name: string;
   hours: number;
   courseId: string;
+  convalidate?: boolean;
 }
 
 interface AbsenceRecord {
@@ -41,7 +42,8 @@ function isSubjectRecord(value: unknown): value is SubjectRecord {
     typeof record.id === 'string' &&
     typeof record.name === 'string' &&
     typeof record.hours === 'number' &&
-    typeof record.courseId === 'string'
+    typeof record.courseId === 'string' &&
+    (record.convalidate === undefined || typeof record.convalidate === 'boolean')
   );
 }
 
@@ -70,6 +72,9 @@ export function SessionOverviewContainer({
   const [absences, setAbsences] = useState<AbsenceRecord[]>([]);
   const [loadingSubjects, setLoadingSubjects] = useState(true);
   const [pendingAbsence, setPendingAbsence] = useState<PendingAbsenceState | null>(
+    null,
+  );
+  const [pendingConvalidationId, setPendingConvalidationId] = useState<string | null>(
     null,
   );
   const [pendingLogout, setPendingLogout] = useState(false);
@@ -173,6 +178,7 @@ export function SessionOverviewContainer({
       // Limpia el estado transitorio cuando `<Activity>` oculta la ruta tras navegar.
       setPendingLogout(false);
       setPendingAbsence(null);
+      setPendingConvalidationId(null);
       setErrorMessage(null);
       setLiveMessage('');
     };
@@ -201,6 +207,7 @@ export function SessionOverviewContainer({
       maxAllowedHours,
       currentPercentage,
       remainingHours,
+      convalidated: Boolean(subject.convalidate),
     };
   });
 
@@ -208,7 +215,13 @@ export function SessionOverviewContainer({
     subjectId: string,
     hours: QuickAbsenceHours,
   ) => {
-    if (pendingAbsence || pendingLogout) {
+    const targetSubject = subjects.find((item) => item.id === subjectId);
+    if (
+      pendingAbsence ||
+      pendingConvalidationId ||
+      pendingLogout ||
+      targetSubject?.convalidate === true
+    ) {
       return;
     }
 
@@ -273,8 +286,81 @@ export function SessionOverviewContainer({
     }
   };
 
+  const handleToggleConvalidate = async (
+    subjectId: string,
+    nextConvalidated: boolean,
+  ) => {
+    if (pendingConvalidationId || pendingAbsence || pendingLogout) {
+      return;
+    }
+
+    let redirected = false;
+    setPendingConvalidationId(subjectId);
+    setErrorMessage(null);
+
+    try {
+      const { response, unauthorized } = await fetchWithAuth(
+        `/api/subjects/${subjectId}/convalidate`,
+        {
+          method: nextConvalidated ? 'POST' : 'DELETE',
+        },
+      );
+
+      if (unauthorized) {
+        redirected = true;
+        router.replace('/login');
+        router.refresh();
+        return;
+      }
+
+      if (!response.ok) {
+        const apiError = await readApiErrorMessage(response);
+        setErrorMessage(
+          apiError.error ??
+            (nextConvalidated
+              ? 'No se pudo convalidar la asignatura. Inténtalo de nuevo.'
+              : 'No se pudo desconvalidar la asignatura. Inténtalo de nuevo.'),
+        );
+        return;
+      }
+
+      const payload: unknown = await response.json();
+      const confirmedConvalidate =
+        typeof payload === 'object' &&
+        payload !== null &&
+        'convalidate' in payload &&
+        typeof (payload as { convalidate?: unknown }).convalidate === 'boolean'
+          ? (payload as { convalidate: boolean }).convalidate
+          : nextConvalidated;
+
+      setSubjects((prev) =>
+        prev.map((item) =>
+          item.id === subjectId
+            ? { ...item, convalidate: confirmedConvalidate }
+            : item,
+        ),
+      );
+
+      const subjectName =
+        subjects.find((item) => item.id === subjectId)?.name ?? 'la asignatura';
+      setLiveMessage(
+        confirmedConvalidate
+          ? `Asignatura ${subjectName} convalidada.`
+          : `Asignatura ${subjectName} desconvalidada.`,
+      );
+    } catch {
+      setErrorMessage(
+        'No se pudo conectar con el servidor para actualizar la convalidación.',
+      );
+    } finally {
+      if (!redirected) {
+        setPendingConvalidationId(null);
+      }
+    }
+  };
+
   const handleLogout = async () => {
-    if (pendingLogout || pendingAbsence) {
+    if (pendingLogout || pendingAbsence || pendingConvalidationId) {
       return;
     }
 
@@ -308,10 +394,12 @@ export function SessionOverviewContainer({
       subjects={subjectSummaries}
       loadingSubjects={loadingSubjects}
       pendingAbsence={pendingAbsence}
+      pendingConvalidationId={pendingConvalidationId}
       errorMessage={errorMessage}
       liveMessage={liveMessage}
       pendingLogout={pendingLogout}
       onAddAbsence={handleAddAbsence}
+      onToggleConvalidate={handleToggleConvalidate}
       onLogout={handleLogout}
     />
   );
