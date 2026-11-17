@@ -2,6 +2,7 @@ export { Badge, type BadgeProps } from './Badge';
 export { BrandMark, type BrandMarkProps } from './BrandMark';
 export { Button, type ButtonProps } from './Button';
 export { FieldMessage, type FieldMessageProps } from './FieldMessage';
+export { FilterPill, type FilterPillProps } from './FilterPill';
 export { Heading, type HeadingProps } from './Heading';
 export { Icon, type IconName, type IconProps } from './Icon';
 export { IconButton, type IconButtonProps } from './IconButton';

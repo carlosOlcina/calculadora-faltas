@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 
 export interface BadgeProps {
   mono?: boolean;
-  tone?: 'neutral' | 'error';
+  tone?: 'neutral' | 'error' | 'success';
   children: ReactNode;
 }
 
