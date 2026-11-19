@@ -2,8 +2,17 @@ import type { ButtonHTMLAttributes, Ref } from 'react';
 
 export interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   ref?: Ref<HTMLButtonElement>;
-  variant?: 'input-action' | 'menu-trigger';
+  variant?: 'input-action' | 'menu-trigger' | 'drag-handle';
 }
+
+const VARIANT_CLASSES: Record<
+  NonNullable<IconButtonProps['variant']>,
+  string
+> = {
+  'input-action': 'cf-input-action',
+  'menu-trigger': 'cf-menu-trigger',
+  'drag-handle': 'cf-drag-handle',
+};
 
 export function IconButton({
   ref,
@@ -13,7 +22,7 @@ export function IconButton({
   children,
   ...props
 }: IconButtonProps) {
-  const baseClass = variant === 'menu-trigger' ? 'cf-menu-trigger' : 'cf-input-action';
+  const baseClass = VARIANT_CLASSES[variant];
   const classes = [baseClass, className ?? ''].filter(Boolean).join(' ');
 
   return (

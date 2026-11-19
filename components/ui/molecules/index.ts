@@ -35,7 +35,12 @@ export {
   type SubjectContextMenuProps,
 } from './SubjectContextMenu';
 export {
+  SortableSubjectMenuItem,
+  type SortableSubjectMenuItemProps,
+} from './SortableSubjectMenuItem';
+export {
   SubjectMenuItem,
+  type DragHandleButtonProps,
   type SubjectMenuItemProps,
   type SubjectSummaryItem,
 } from './SubjectMenuItem';
