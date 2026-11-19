@@ -87,6 +87,10 @@
     0 1px 2px rgb(24 24 23 / 0.04), 0 12px 28px -18px rgb(24 24 23 / 0.14),
     0 1px 2px rgb(0 0 0 / 0.36), 0 14px 30px -18px rgb(0 0 0 / 0.6)
   );
+  --shadow-card-dragging: light-dark(
+    0 4px 10px rgb(24 24 23 / 0.08), 0 18px 36px -14px rgb(24 24 23 / 0.22),
+    0 4px 12px rgb(0 0 0 / 0.48), 0 20px 40px -14px rgb(0 0 0 / 0.72)
+  );
   --shadow-tab-active: light-dark(
     0 1px 2px rgb(24 24 23 / 0.08),
     0 1px 3px rgb(0 0 0 / 0.45)
