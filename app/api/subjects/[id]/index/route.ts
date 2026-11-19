@@ -29,12 +29,7 @@ export const POST = protectedRoute<SubjectIndexRouteContext>(
     const { id } = await context.params;
     const body = await parseJsonBody(request);
     const input = parseOrThrow(subjectSchemas.setIndexBody, body);
-    const result = await subjectDal.setIndex(
-      id,
-      userId,
-      input.index,
-      input.precedingSubjectIds,
-    );
+    const result = await subjectDal.setIndex(id, userId, input.index);
 
     return NextResponse.json(
       {

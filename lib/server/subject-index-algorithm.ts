@@ -58,7 +58,7 @@ function normalizeSequential(items: readonly TenthsEntry[]): TenthsEntry[] {
  * Calcula la actualización de índices (con precisión de una décima en décimas enteras)
  * resolviendo huecos entre enteros, colisiones hasta `.9` y reindexado completo a enteros.
  */
-function computeSingleSubjectIndexUpdate(
+export function computeSubjectIndexUpdate(
   currentEntries: readonly SubjectIndexEntry[],
   subjectId: string,
   requestedIndex: number,
@@ -171,107 +171,6 @@ function computeSingleSubjectIndexUpdate(
     assignedIndex: fromTenths(assignedItem.tenths),
     reindexed,
     entries: finalItems.map(toEntry),
-    changed,
-  };
-}
-
-/**
- * Calcula la actualización de índices (con precisión de una décima en décimas enteras)
- * creando primero índices para las asignaturas previas sin índice si se proporcionan
- * y resolviendo huecos entre enteros, colisiones hasta `.9` y reindexado completo.
- */
-export function computeSubjectIndexUpdate(
-  currentEntries: readonly SubjectIndexEntry[],
-  subjectId: string,
-  requestedIndex: number,
-  precedingSubjectIds: readonly string[] = [],
-): SubjectIndexPlan {
-  if (precedingSubjectIds.length === 0) {
-    return computeSingleSubjectIndexUpdate(
-      currentEntries,
-      subjectId,
-      requestedIndex,
-    );
-  }
-
-  const initialTenthsBySubjectId = new Map<string, number>(
-    currentEntries.map((entry) => [entry.subjectId, toTenths(entry.index)]),
-  );
-
-  let workingEntries: SubjectIndexEntry[] = currentEntries.map((entry) => ({
-    subjectId: entry.subjectId,
-    index: entry.index,
-  }));
-  const indexedSubjectIds = new Set(
-    workingEntries.map((entry) => entry.subjectId),
-  );
-
-  let maxBucket = 0;
-  for (const entry of workingEntries) {
-    const bucket = bucketOf(toTenths(entry.index));
-    if (bucket > maxBucket) {
-      maxBucket = bucket;
-    }
-  }
-
-  let anyReindexed = false;
-  const seenPrecedingIds = new Set<string>();
-
-  for (const precedingId of precedingSubjectIds) {
-    if (precedingId === subjectId || seenPrecedingIds.has(precedingId)) {
-      continue;
-    }
-    seenPrecedingIds.add(precedingId);
-
-    if (indexedSubjectIds.has(precedingId)) {
-      continue;
-    }
-
-    maxBucket += 1;
-    const stepPlan = computeSingleSubjectIndexUpdate(
-      workingEntries,
-      precedingId,
-      maxBucket,
-    );
-    workingEntries = stepPlan.entries;
-    indexedSubjectIds.add(precedingId);
-    maxBucket = Math.max(
-      maxBucket,
-      bucketOf(toTenths(stepPlan.assignedIndex)),
-    );
-    anyReindexed = anyReindexed || stepPlan.reindexed;
-  }
-
-  let maxPrecedingBucket = 0;
-  for (const entry of workingEntries) {
-    if (seenPrecedingIds.has(entry.subjectId)) {
-      const bucket = bucketOf(toTenths(entry.index));
-      if (bucket > maxPrecedingBucket) {
-        maxPrecedingBucket = bucket;
-      }
-    }
-  }
-
-  const effectiveRequestedIndex =
-    maxPrecedingBucket > 0
-      ? Math.max(requestedIndex, maxPrecedingBucket + 1)
-      : requestedIndex;
-
-  const finalPlan = computeSingleSubjectIndexUpdate(
-    workingEntries,
-    subjectId,
-    effectiveRequestedIndex,
-  );
-
-  const changed = finalPlan.entries.filter(
-    (entry) =>
-      initialTenthsBySubjectId.get(entry.subjectId) !== toTenths(entry.index),
-  );
-
-  return {
-    assignedIndex: finalPlan.assignedIndex,
-    reindexed: anyReindexed || finalPlan.reindexed,
-    entries: finalPlan.entries,
     changed,
   };
 }

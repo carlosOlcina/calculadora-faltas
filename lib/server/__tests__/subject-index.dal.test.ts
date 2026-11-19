@@ -1,13 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { Prisma, type PrismaClient } from '@/generated/prisma/client';
-import { computeDropReorderPlan } from '@/lib/utils/subject-order';
 import { SubjectDAL } from '../dal/subject.dal';
 import {
   NotFoundError,
   UnauthorizedError,
   ValidationError,
 } from '../errors';
-import { subjectSchemas } from '../schemas';
 
 const COURSE_ID = '11111111-1111-4111-8111-111111111111';
 const OTHER_COURSE_ID = '22222222-2222-4222-8222-222222222222';
@@ -87,20 +85,14 @@ function createInMemoryPrisma(options?: {
           where,
           select,
         }: {
-          where: { courseId: string; id?: { in: string[] } };
+          where: { courseId: string };
           select: {
-            id?: boolean;
             convalidatedSubjects?: { where: { userId: string } };
             subjectIndices?: { where: { userId: string } };
           };
         }) => {
-          const allowedIds = where.id?.in ? new Set(where.id.in) : null;
           const rows = allSubjects
-            .filter(
-              (s) =>
-                s.courseId === where.courseId &&
-                (allowedIds === null || allowedIds.has(s.id)),
-            )
+            .filter((s) => s.courseId === where.courseId)
             .sort((a, b) => a.name.localeCompare(b.name));
 
           return rows.map((row) => {
@@ -356,172 +348,5 @@ describe('SubjectDAL subject indexing', () => {
         dal.setIndex(subjects[0].id, USER_A, invalidIndex),
       ).rejects.toBeInstanceOf(ValidationError);
     }
-  });
-
-  it('al soltar una asignatura en la 2ª posición sobre elementos sin indexar crea índice al primero y mantiene el orden esperado', async () => {
-    const { db } = createInMemoryPrisma({ subjectCount: 4 });
-    const dal = new SubjectDAL(db);
-
-    const initialList = await dal.listByUser(USER_A);
-    const plan = computeDropReorderPlan(
-      initialList,
-      initialList[2].id,
-      initialList[1].id,
-    );
-    expect(plan).toEqual({
-      subjectId: initialList[2].id,
-      requestedIndex: 2,
-      precedingSubjectIds: [initialList[0].id],
-    });
-
-    const result = await dal.setIndex(
-      plan!.subjectId,
-      USER_A,
-      plan!.requestedIndex,
-      plan!.precedingSubjectIds,
-    );
-    expect(result.created).toBe(true);
-    expect(result.index).toBe(2);
-    expect(result.indices).toEqual([
-      { subjectId: initialList[0].id, index: 1 },
-      { subjectId: initialList[2].id, index: 2 },
-    ]);
-
-    const updatedList = await dal.listByUser(USER_A);
-    expect(updatedList.map((s) => s.id)).toEqual([
-      initialList[0].id,
-      initialList[2].id,
-      initialList[1].id,
-      initialList[3].id,
-    ]);
-    expect(updatedList.map((s) => s.index)).toEqual([1, 2, null, null]);
-  });
-
-  it('al mover la primera asignatura ya indexada más allá de elementos sin índice los indexa antes y reindexa sin P2002', async () => {
-    const { db, subjects } = createInMemoryPrisma({ subjectCount: 4 });
-    const dal = new SubjectDAL(db);
-
-    await dal.setIndex(subjects[0].id, USER_A, 1);
-    const listBefore = await dal.listByUser(USER_A);
-
-    const plan = computeDropReorderPlan(
-      listBefore,
-      subjects[0].id,
-      subjects[2].id,
-    );
-    expect(plan).toEqual({
-      subjectId: subjects[0].id,
-      requestedIndex: 4,
-      precedingSubjectIds: [subjects[1].id, subjects[2].id],
-    });
-
-    const moved = await dal.setIndex(
-      plan!.subjectId,
-      USER_A,
-      plan!.requestedIndex,
-      plan!.precedingSubjectIds,
-    );
-    expect(moved.created).toBe(false);
-    expect(moved.reindexed).toBe(true);
-    expect(moved.index).toBe(3);
-    expect(moved.indices).toEqual([
-      { subjectId: subjects[1].id, index: 1 },
-      { subjectId: subjects[2].id, index: 2 },
-      { subjectId: subjects[0].id, index: 3 },
-    ]);
-
-    const listAfter = await dal.listByUser(USER_A);
-    expect(listAfter.map((s) => s.id)).toEqual([
-      subjects[1].id,
-      subjects[2].id,
-      subjects[0].id,
-      subjects[3].id,
-    ]);
-    expect(listAfter.map((s) => s.index)).toEqual([1, 2, 3, null]);
-  });
-
-  it('mantiene intacto el índice existente de una asignatura incluida en precedingSubjectIds', async () => {
-    const { db, subjects } = createInMemoryPrisma({ subjectCount: 4 });
-    const dal = new SubjectDAL(db);
-
-    await dal.setIndex(subjects[0].id, USER_A, 1);
-
-    const res = await dal.setIndex(subjects[2].id, USER_A, 3, [
-      subjects[0].id,
-      subjects[1].id,
-    ]);
-    expect(res.indices).toEqual([
-      { subjectId: subjects[0].id, index: 1 },
-      { subjectId: subjects[1].id, index: 2 },
-      { subjectId: subjects[2].id, index: 3 },
-    ]);
-    expect(await dal.getIndex(subjects[0].id, USER_A)).toEqual({
-      userId: USER_A,
-      subjectId: subjects[0].id,
-      index: 1,
-    });
-  });
-
-  it('rechaza con NotFoundError y no persiste ningún índice si precedingSubjectIds contiene una asignatura ajena o inexistente', async () => {
-    const { db, subjects, foreignSubject } = createInMemoryPrisma({
-      subjectCount: 3,
-    });
-    const dal = new SubjectDAL(db);
-
-    await expect(
-      dal.setIndex(subjects[1].id, USER_A, 3, [
-        subjects[0].id,
-        foreignSubject.id,
-      ]),
-    ).rejects.toBeInstanceOf(NotFoundError);
-
-    await expect(
-      dal.setIndex(subjects[1].id, USER_A, 3, [
-        subjects[0].id,
-        'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
-      ]),
-    ).rejects.toBeInstanceOf(NotFoundError);
-
-    expect(await dal.getIndex(subjects[0].id, USER_A)).toBeNull();
-    expect(await dal.getIndex(subjects[1].id, USER_A)).toBeNull();
-  });
-
-  it('valida UUIDs inválidos, duplicados y autoinclusión en precedingSubjectIds y setIndexBody', async () => {
-    const { db, subjects } = createInMemoryPrisma({ subjectCount: 3 });
-    const dal = new SubjectDAL(db);
-
-    await expect(
-      dal.setIndex(subjects[1].id, USER_A, 2, ['no-es-uuid']),
-    ).rejects.toBeInstanceOf(ValidationError);
-
-    await expect(
-      dal.setIndex(subjects[1].id, USER_A, 2, [subjects[0].id, subjects[0].id]),
-    ).rejects.toBeInstanceOf(ValidationError);
-
-    await expect(
-      dal.setIndex(subjects[1].id, USER_A, 2, [subjects[1].id]),
-    ).rejects.toBeInstanceOf(ValidationError);
-
-    expect(subjectSchemas.setIndexBody.safeParse({ index: 1 }).success).toBe(
-      true,
-    );
-    expect(
-      subjectSchemas.setIndexBody.safeParse({
-        index: 2,
-        precedingSubjectIds: [subjects[0].id],
-      }).success,
-    ).toBe(true);
-    expect(
-      subjectSchemas.setIndexBody.safeParse({
-        index: 2,
-        precedingSubjectIds: [subjects[0].id, subjects[0].id],
-      }).success,
-    ).toBe(false);
-    expect(
-      subjectSchemas.setIndexBody.safeParse({
-        index: 2,
-        precedingSubjectIds: ['invalido'],
-      }).success,
-    ).toBe(false);
   });
 });

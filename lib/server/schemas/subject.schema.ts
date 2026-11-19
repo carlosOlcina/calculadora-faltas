@@ -25,14 +25,6 @@ const index = z
   .refine((value) => Math.abs(value * 10 - Math.round(value * 10)) < 1e-9, {
     error: 'El indice solo puede tener como maximo un decimal.',
   });
-const precedingSubjectIds = z
-  .array(id, {
-    error:
-      'La lista de asignaturas previas debe ser un array de UUIDs validos.',
-  })
-  .refine((ids) => new Set(ids).size === ids.length, {
-    error: 'La lista de asignaturas previas no puede contener duplicados.',
-  });
 
 export const subjectSchemas = {
   id,
@@ -58,18 +50,11 @@ export const subjectSchemas = {
   }),
   setIndexBody: z.object({
     index,
-    precedingSubjectIds: precedingSubjectIds.optional(),
   }),
-  setIndex: z
-    .object({
-      userId,
-      subjectId: id,
-      index,
-      precedingSubjectIds: precedingSubjectIds.default([]),
-    })
-    .refine((data) => !data.precedingSubjectIds.includes(data.subjectId), {
-      error:
-        'La asignatura objetivo no puede aparecer en la lista de asignaturas previas.',
-    }),
+  setIndex: z.object({
+    userId,
+    subjectId: id,
+    index,
+  }),
 } as const;
 

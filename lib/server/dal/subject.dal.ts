@@ -387,13 +387,11 @@ export class SubjectDAL extends BaseDAL {
     subjectId: string,
     userId: string,
     requestedIndex: number,
-    precedingSubjectIds?: readonly string[],
   ): Promise<SetSubjectIndexResult> {
     const data = this.validate(subjectSchemas.setIndex, {
       userId,
       subjectId,
       index: requestedIndex,
-      precedingSubjectIds,
     });
 
     return this.execute(async () => {
@@ -412,35 +410,15 @@ export class SubjectDAL extends BaseDAL {
                 );
               }
 
-              if (data.precedingSubjectIds.length === 0) {
-                const subject = await tx.subject.findFirst({
-                  where: { id: data.subjectId, courseId: user.courseId },
-                  select: { id: true },
-                });
+              const subject = await tx.subject.findFirst({
+                where: { id: data.subjectId, courseId: user.courseId },
+                select: { id: true },
+              });
 
-                if (!subject) {
-                  throw new NotFoundError(
-                    'No se encontró la asignatura solicitada.',
-                  );
-                }
-              } else {
-                const requiredSubjectIds = [
-                  data.subjectId,
-                  ...data.precedingSubjectIds,
-                ];
-                const matchingSubjects = await tx.subject.findMany({
-                  where: {
-                    id: { in: requiredSubjectIds },
-                    courseId: user.courseId,
-                  },
-                  select: { id: true },
-                });
-
-                if (matchingSubjects.length !== requiredSubjectIds.length) {
-                  throw new NotFoundError(
-                    'No se encontró la asignatura solicitada.',
-                  );
-                }
+              if (!subject) {
+                throw new NotFoundError(
+                  'No se encontró la asignatura solicitada.',
+                );
               }
 
               const existingRows = await tx.subjectIndex.findMany({
@@ -463,7 +441,6 @@ export class SubjectDAL extends BaseDAL {
                 currentEntries,
                 data.subjectId,
                 data.index,
-                data.precedingSubjectIds,
               );
 
               if (plan.changed.length > 0) {
