@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   applySubjectIndices,
+  computeDropReorderPlan,
   computeRequestedIndexForDrop,
   sortSubjectsByIndex,
 } from '../subject-order';
@@ -90,5 +91,150 @@ describe('subject-order helpers', () => {
     expect(computeRequestedIndexForDrop(list, 'a', 'a')).toBeNull();
     expect(computeRequestedIndexForDrop(list, 'a', 'missing')).toBeNull();
     expect(computeRequestedIndexForDrop(list, 'missing', 'b')).toBeNull();
+  });
+
+  describe('computeDropReorderPlan', () => {
+    it('incluye el elemento previo sin índice al soltar en la 2ª posición sobre elementos sin indexar', () => {
+      const list = [
+        { id: 'a', index: null },
+        { id: 'b', index: null },
+        { id: 'c', index: null },
+      ];
+
+      expect(computeDropReorderPlan(list, 'c', 'b')).toEqual({
+        subjectId: 'c',
+        requestedIndex: 2,
+        precedingSubjectIds: ['a'],
+      });
+    });
+
+    it('al intercambiar los dos primeros elementos sin índice indexa el nuevo primero como previo', () => {
+      const list = [
+        { id: 'a', index: null },
+        { id: 'b', index: null },
+        { id: 'c', index: null },
+      ];
+
+      expect(computeDropReorderPlan(list, 'a', 'b')).toEqual({
+        subjectId: 'a',
+        requestedIndex: 2,
+        precedingSubjectIds: ['b'],
+      });
+    });
+
+    it('soltar en la primera posición cuando no hay índices previos mantiene precedingSubjectIds vacío', () => {
+      const list = [
+        { id: 'a', index: null },
+        { id: 'b', index: null },
+        { id: 'c', index: null },
+      ];
+
+      expect(computeDropReorderPlan(list, 'c', 'a')).toEqual({
+        subjectId: 'c',
+        requestedIndex: 1,
+        precedingSubjectIds: [],
+      });
+    });
+
+    it('incluye todos los elementos previos sin índice al soltar en la 3ª posición', () => {
+      const list = [
+        { id: 'a', index: null },
+        { id: 'b', index: null },
+        { id: 'c', index: null },
+      ];
+
+      expect(computeDropReorderPlan(list, 'a', 'c')).toEqual({
+        subjectId: 'a',
+        requestedIndex: 3,
+        precedingSubjectIds: ['b', 'c'],
+      });
+    });
+
+    it('calcula requestedIndex y precedingSubjectIds con decimales previos sin sobrepedir huecos', () => {
+      const list = [
+        { id: 'a', index: 1 },
+        { id: 'b', index: 1.1 },
+        { id: 'c', index: null },
+        { id: 'd', index: null },
+        { id: 'e', index: null },
+      ];
+
+      expect(computeDropReorderPlan(list, 'e', 'd')).toEqual({
+        subjectId: 'e',
+        requestedIndex: 3,
+        precedingSubjectIds: ['c'],
+      });
+    });
+
+    it('evita colisiones cuando existen huecos de cubos previos antes de elementos sin índice', () => {
+      const list = [
+        { id: 'a', index: 1 },
+        { id: 'b', index: 3 },
+        { id: 'c', index: null },
+        { id: 'd', index: null },
+        { id: 'e', index: null },
+      ];
+
+      expect(computeDropReorderPlan(list, 'e', 'd')).toEqual({
+        subjectId: 'e',
+        requestedIndex: 5,
+        precedingSubjectIds: ['c'],
+      });
+    });
+
+    it('al arrastrar un elemento ya indexado más allá de elementos sin índice incluye todos los previos sin índice', () => {
+      const list = [
+        { id: 'x', index: 1 },
+        { id: 'a', index: null },
+        { id: 'b', index: null },
+        { id: 'c', index: null },
+      ];
+
+      expect(computeDropReorderPlan(list, 'x', 'b')).toEqual({
+        subjectId: 'x',
+        requestedIndex: 4,
+        precedingSubjectIds: ['a', 'b'],
+      });
+    });
+
+    it('soltar justo después del último elemento indexado no requiere indexar los siguientes sin índice', () => {
+      const list = [
+        { id: 'a', index: 1 },
+        { id: 'b', index: 1.1 },
+        { id: 'c', index: null },
+        { id: 'd', index: null },
+      ];
+
+      expect(computeDropReorderPlan(list, 'd', 'c')).toEqual({
+        subjectId: 'd',
+        requestedIndex: 2,
+        precedingSubjectIds: [],
+      });
+    });
+
+    it('soltar antes de un elemento ya indexado solicita su mismo decimal sin precedingSubjectIds', () => {
+      const list = [
+        { id: 'a', index: 1 },
+        { id: 'b', index: 1.1 },
+        { id: 'c', index: 2 },
+      ];
+
+      expect(computeDropReorderPlan(list, 'c', 'b')).toEqual({
+        subjectId: 'c',
+        requestedIndex: 1.1,
+        precedingSubjectIds: [],
+      });
+    });
+
+    it('devuelve null cuando origen y destino coinciden o alguno no existe', () => {
+      const list = [
+        { id: 'a', index: 1 },
+        { id: 'b', index: null },
+      ];
+
+      expect(computeDropReorderPlan(list, 'a', 'a')).toBeNull();
+      expect(computeDropReorderPlan(list, 'a', 'missing')).toBeNull();
+      expect(computeDropReorderPlan(list, 'missing', 'b')).toBeNull();
+    });
   });
 });
