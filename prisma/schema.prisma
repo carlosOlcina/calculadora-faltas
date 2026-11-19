@@ -25,6 +25,7 @@ model User {
   course               Course                @relation(fields: [courseId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   absences             Absence[]
   convalidatedSubjects ConvalidatedSubject[]
+  subjectIndices       SubjectIndex[]
   jwtTokens            JwtToken[]
   createdAt            DateTime              @default(now()) @map("created_at")
   updatedAt            DateTime              @updatedAt @map("updated_at")
@@ -41,6 +42,7 @@ model Subject {
   course               Course                @relation(fields: [courseId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   absences             Absence[]
   convalidatedSubjects ConvalidatedSubject[]
+  subjectIndices       SubjectIndex[]
 
   @@unique([courseId, name])
   @@index([courseId])
@@ -85,5 +87,19 @@ model ConvalidatedSubject {
   @@index([userId])
   @@index([subjectId])
   @@map("convalidate_subjects")
+}
+
+model SubjectIndex {
+  userId    String  @map("user_id") @db.Uuid
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  subjectId String  @map("subject_id") @db.Uuid
+  subject   Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  index     Decimal @map("index") @db.Decimal(10, 1)
+
+  @@id([userId, subjectId])
+  @@unique([userId, index])
+  @@index([userId])
+  @@index([subjectId])
+  @@map("subject_indices")
 }
 

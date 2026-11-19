@@ -1,7 +1,14 @@
 import 'server-only';
+import { Prisma } from '@/generated/prisma/client';
 import { BaseDAL } from './base.dal';
 import { NotFoundError, UnauthorizedError } from '../errors';
 import { subjectSchemas } from '../schemas';
+import {
+  computeSubjectIndexUpdate,
+  formatTenths,
+  toTenths,
+  type SubjectIndexEntry,
+} from '../subject-index-algorithm';
 import type { CourseDTO } from './course.dal';
 
 export interface SubjectDTO {
@@ -10,10 +17,12 @@ export interface SubjectDTO {
   hours: number;
   courseId: string;
   convalidate?: boolean;
+  index?: number | null;
 }
 
 export interface UserSubjectDTO extends SubjectDTO {
   convalidate: boolean;
+  index: number | null;
 }
 
 export interface SubjectWithCourseDTO extends UserSubjectDTO {
@@ -25,6 +34,20 @@ export interface ConvalidatedSubjectDTO {
   subjectId: string;
 }
 
+export interface SubjectIndexDTO {
+  userId: string;
+  subjectId: string;
+  index: number;
+}
+
+export interface SetSubjectIndexResult {
+  created: boolean;
+  index: number;
+  reindexed: boolean;
+  subjectIndex: SubjectIndexDTO;
+  indices: SubjectIndexEntry[];
+}
+
 export interface CreateSubjectInput {
   name: string;
   hours: number;
@@ -34,6 +57,8 @@ export interface UpdateSubjectInput {
   name?: string;
   hours?: number;
 }
+
+const MAX_SERIALIZABLE_RETRIES = 3;
 
 const SUBJECT_SELECT = {
   id: true,
@@ -58,6 +83,12 @@ const CONVALIDATED_SUBJECT_SELECT = {
   subjectId: true,
 } as const;
 
+const SUBJECT_INDEX_SELECT = {
+  userId: true,
+  subjectId: true,
+  index: true,
+} as const;
+
 function buildConvalidationSelect(userId: string) {
   return {
     where: { userId },
@@ -66,13 +97,30 @@ function buildConvalidationSelect(userId: string) {
   } as const;
 }
 
-function mapSubjectWithConvalidation<
-  T extends { convalidatedSubjects: { subjectId: string }[] },
->(record: T): Omit<T, 'convalidatedSubjects'> & { convalidate: boolean } {
-  const { convalidatedSubjects, ...rest } = record;
+function buildSubjectIndexSelect(userId: string) {
+  return {
+    where: { userId },
+    select: { index: true },
+    take: 1,
+  } as const;
+}
+
+function mapSubjectWithUserMetadata<
+  T extends {
+    convalidatedSubjects: { subjectId: string }[];
+    subjectIndices: { index: Prisma.Decimal | number | string }[];
+  },
+>(
+  record: T,
+): Omit<T, 'convalidatedSubjects' | 'subjectIndices'> & {
+  convalidate: boolean;
+  index: number | null;
+} {
+  const { convalidatedSubjects, subjectIndices, ...rest } = record;
   return {
     ...rest,
     convalidate: convalidatedSubjects.length > 0,
+    index: subjectIndices[0] ? Number(subjectIndices[0].index) : null,
   };
 }
 
@@ -133,6 +181,7 @@ export class SubjectDAL extends BaseDAL {
       return {
         ...created,
         convalidate: false,
+        index: null,
       };
     });
   }
@@ -152,10 +201,11 @@ export class SubjectDAL extends BaseDAL {
         select: {
           ...SUBJECT_WITH_COURSE_SELECT,
           convalidatedSubjects: buildConvalidationSelect(validUserId),
+          subjectIndices: buildSubjectIndexSelect(validUserId),
         },
       });
 
-      return record ? mapSubjectWithConvalidation(record) : null;
+      return record ? mapSubjectWithUserMetadata(record) : null;
     });
   }
 
@@ -170,11 +220,24 @@ export class SubjectDAL extends BaseDAL {
         select: {
           ...SUBJECT_SELECT,
           convalidatedSubjects: buildConvalidationSelect(validUserId),
+          subjectIndices: buildSubjectIndexSelect(validUserId),
         },
         orderBy: { name: 'asc' },
       });
 
-      return records.map(mapSubjectWithConvalidation);
+      const mapped = records.map(mapSubjectWithUserMetadata);
+      return mapped.sort((a, b) => {
+        if (a.index !== null && b.index !== null) {
+          return a.index - b.index;
+        }
+        if (a.index !== null) {
+          return -1;
+        }
+        if (b.index !== null) {
+          return 1;
+        }
+        return 0;
+      });
     });
   }
 
@@ -208,10 +271,11 @@ export class SubjectDAL extends BaseDAL {
         select: {
           ...SUBJECT_SELECT,
           convalidatedSubjects: buildConvalidationSelect(validUserId),
+          subjectIndices: buildSubjectIndexSelect(validUserId),
         },
       });
 
-      return mapSubjectWithConvalidation(record);
+      return mapSubjectWithUserMetadata(record);
     });
   }
 
@@ -286,6 +350,149 @@ export class SubjectDAL extends BaseDAL {
           },
         },
       });
+    });
+  }
+
+  async getIndex(
+    subjectId: string,
+    userId: string,
+  ): Promise<SubjectIndexDTO | null> {
+    const validSubjectId = this.validate(subjectSchemas.id, subjectId);
+    const validUserId = this.validate(subjectSchemas.userId, userId);
+
+    return this.execute(async () => {
+      await this.ensureUserSubject(validSubjectId, validUserId);
+
+      const record = await this.db.subjectIndex.findUnique({
+        where: {
+          userId_subjectId: {
+            userId: validUserId,
+            subjectId: validSubjectId,
+          },
+        },
+        select: SUBJECT_INDEX_SELECT,
+      });
+
+      return record
+        ? {
+            userId: record.userId,
+            subjectId: record.subjectId,
+            index: Number(record.index),
+          }
+        : null;
+    });
+  }
+
+  async setIndex(
+    subjectId: string,
+    userId: string,
+    requestedIndex: number,
+  ): Promise<SetSubjectIndexResult> {
+    const data = this.validate(subjectSchemas.setIndex, {
+      userId,
+      subjectId,
+      index: requestedIndex,
+    });
+
+    return this.execute(async () => {
+      for (let attempt = 0; attempt < MAX_SERIALIZABLE_RETRIES; attempt += 1) {
+        try {
+          return await this.db.$transaction(
+            async (tx) => {
+              const user = await tx.user.findUnique({
+                where: { id: data.userId },
+                select: { courseId: true },
+              });
+
+              if (!user) {
+                throw new UnauthorizedError(
+                  'El usuario autenticado no existe.',
+                );
+              }
+
+              const subject = await tx.subject.findFirst({
+                where: { id: data.subjectId, courseId: user.courseId },
+                select: { id: true },
+              });
+
+              if (!subject) {
+                throw new NotFoundError(
+                  'No se encontró la asignatura solicitada.',
+                );
+              }
+
+              const existingRows = await tx.subjectIndex.findMany({
+                where: { userId: data.userId },
+                select: { subjectId: true, index: true },
+                orderBy: { index: 'asc' },
+              });
+
+              const currentEntries: SubjectIndexEntry[] = existingRows.map(
+                (row) => ({
+                  subjectId: row.subjectId,
+                  index: Number(row.index),
+                }),
+              );
+              const created = !currentEntries.some(
+                (entry) => entry.subjectId === data.subjectId,
+              );
+
+              const plan = computeSubjectIndexUpdate(
+                currentEntries,
+                data.subjectId,
+                data.index,
+              );
+
+              if (plan.changed.length > 0) {
+                await tx.subjectIndex.deleteMany({
+                  where: {
+                    userId: data.userId,
+                    subjectId: {
+                      in: plan.changed.map((entry) => entry.subjectId),
+                    },
+                  },
+                });
+
+                await tx.subjectIndex.createMany({
+                  data: plan.changed.map((entry) => ({
+                    userId: data.userId,
+                    subjectId: entry.subjectId,
+                    index: formatTenths(toTenths(entry.index)),
+                  })),
+                });
+              }
+
+              return {
+                created,
+                index: plan.assignedIndex,
+                reindexed: plan.reindexed,
+                subjectIndex: {
+                  userId: data.userId,
+                  subjectId: data.subjectId,
+                  index: plan.assignedIndex,
+                },
+                indices: plan.entries,
+              };
+            },
+            {
+              isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+            },
+          );
+        } catch (error) {
+          const isSerializationConflict =
+            error instanceof Prisma.PrismaClientKnownRequestError &&
+            error.code === 'P2034';
+
+          if (
+            !isSerializationConflict ||
+            attempt === MAX_SERIALIZABLE_RETRIES - 1
+          ) {
+            throw error;
+          }
+        }
+      }
+
+      throw new Error('No se pudo completar la actualización del índice.');
     });
   }
 }

@@ -23,9 +23,12 @@ export {
   type UserSubjectDTO,
   type SubjectWithCourseDTO,
   type ConvalidatedSubjectDTO,
+  type SubjectIndexDTO,
+  type SetSubjectIndexResult,
   type CreateSubjectInput,
   type UpdateSubjectInput,
 } from './subject.dal';
+export { type SubjectIndexEntry } from '../subject-index-algorithm';
 export {
   UserDAL,
   userDal,

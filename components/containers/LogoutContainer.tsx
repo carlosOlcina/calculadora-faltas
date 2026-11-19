@@ -8,6 +8,12 @@ import {
   type PendingAbsenceState,
 } from '@/components/ui/organisms';
 import { fetchWithAuth } from '@/lib/utils/auth-fetch';
+import {
+  applySubjectIndices,
+  computeRequestedIndexForDrop,
+  sortSubjectsByIndex,
+  type SubjectIndexMapItem,
+} from '@/lib/utils/subject-order';
 import { readApiErrorMessage } from './authValidation';
 
 interface SubjectRecord {
@@ -16,6 +22,11 @@ interface SubjectRecord {
   hours: number;
   courseId: string;
   convalidate?: boolean;
+  index?: number | null;
+}
+
+interface NormalizedSubjectRecord extends SubjectRecord {
+  index: number | null;
 }
 
 interface AbsenceRecord {
@@ -43,7 +54,23 @@ function isSubjectRecord(value: unknown): value is SubjectRecord {
     typeof record.name === 'string' &&
     typeof record.hours === 'number' &&
     typeof record.courseId === 'string' &&
-    (record.convalidate === undefined || typeof record.convalidate === 'boolean')
+    (record.convalidate === undefined || typeof record.convalidate === 'boolean') &&
+    (record.index === undefined ||
+      record.index === null ||
+      (typeof record.index === 'number' && Number.isFinite(record.index)))
+  );
+}
+
+function isSubjectIndexMapItem(value: unknown): value is SubjectIndexMapItem {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+
+  const record = value as Record<string, unknown>;
+  return (
+    typeof record.subjectId === 'string' &&
+    typeof record.index === 'number' &&
+    Number.isFinite(record.index)
   );
 }
 
@@ -68,7 +95,7 @@ export function SessionOverviewContainer({
   courseTotalHours,
 }: SessionOverviewContainerProps) {
   const router = useRouter();
-  const [subjects, setSubjects] = useState<SubjectRecord[]>([]);
+  const [subjects, setSubjects] = useState<NormalizedSubjectRecord[]>([]);
   const [absences, setAbsences] = useState<AbsenceRecord[]>([]);
   const [loadingSubjects, setLoadingSubjects] = useState(true);
   const [pendingAbsence, setPendingAbsence] = useState<PendingAbsenceState | null>(
@@ -77,6 +104,7 @@ export function SessionOverviewContainer({
   const [pendingConvalidationId, setPendingConvalidationId] = useState<string | null>(
     null,
   );
+  const [pendingReorderId, setPendingReorderId] = useState<string | null>(null);
   const [pendingLogout, setPendingLogout] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [liveMessage, setLiveMessage] = useState('');
@@ -136,9 +164,12 @@ export function SessionOverviewContainer({
           typeof subjectsJson === 'object' &&
           subjectsJson !== null &&
           Array.isArray((subjectsJson as { subjects?: unknown }).subjects)
-            ? (subjectsJson as { subjects: unknown[] }).subjects.filter(
-                isSubjectRecord,
-              )
+            ? (subjectsJson as { subjects: unknown[] }).subjects
+                .filter(isSubjectRecord)
+                .map((subject) => ({
+                  ...subject,
+                  index: subject.index ?? null,
+                }))
             : [];
 
         const rawAbsences =
@@ -150,7 +181,7 @@ export function SessionOverviewContainer({
               )
             : [];
 
-        setSubjects(rawSubjects);
+        setSubjects(sortSubjectsByIndex(rawSubjects));
         setAbsences(rawAbsences);
       } catch (error) {
         if (
@@ -179,6 +210,7 @@ export function SessionOverviewContainer({
       setPendingLogout(false);
       setPendingAbsence(null);
       setPendingConvalidationId(null);
+      setPendingReorderId(null);
       setErrorMessage(null);
       setLiveMessage('');
     };
@@ -216,6 +248,7 @@ export function SessionOverviewContainer({
       currentPercentage,
       remainingHours,
       convalidated: Boolean(subject.convalidate),
+      index: subject.index,
     };
   });
 
@@ -231,6 +264,7 @@ export function SessionOverviewContainer({
     if (
       pendingAbsence ||
       pendingConvalidationId ||
+      pendingReorderId ||
       pendingLogout ||
       targetSubject?.convalidate === true
     ) {
@@ -302,7 +336,12 @@ export function SessionOverviewContainer({
     subjectId: string,
     nextConvalidated: boolean,
   ) => {
-    if (pendingConvalidationId || pendingAbsence || pendingLogout) {
+    if (
+      pendingConvalidationId ||
+      pendingAbsence ||
+      pendingReorderId ||
+      pendingLogout
+    ) {
       return;
     }
 
@@ -371,8 +410,128 @@ export function SessionOverviewContainer({
     }
   };
 
+  const handleReorderSubject = async (
+    activeSubjectId: string,
+    overSubjectId: string,
+  ) => {
+    if (
+      pendingReorderId ||
+      pendingAbsence ||
+      pendingConvalidationId ||
+      pendingLogout
+    ) {
+      return;
+    }
+
+    const requestedIndex = computeRequestedIndexForDrop(
+      subjects,
+      activeSubjectId,
+      overSubjectId,
+    );
+    if (requestedIndex === null) {
+      return;
+    }
+
+    const oldIndex = subjects.findIndex((item) => item.id === activeSubjectId);
+    const newIndex = subjects.findIndex((item) => item.id === overSubjectId);
+    if (oldIndex === -1 || newIndex === -1) {
+      return;
+    }
+
+    const previousSubjects = subjects;
+    const optimisticSubjects = [...subjects];
+    const [movedSubject] = optimisticSubjects.splice(oldIndex, 1);
+    optimisticSubjects.splice(newIndex, 0, movedSubject);
+
+    let redirected = false;
+    setSubjects(optimisticSubjects);
+    setPendingReorderId(activeSubjectId);
+    setErrorMessage(null);
+
+    try {
+      const { response, unauthorized } = await fetchWithAuth(
+        `/api/subjects/${activeSubjectId}/index`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ index: requestedIndex }),
+        },
+      );
+
+      if (unauthorized) {
+        redirected = true;
+        router.replace('/login');
+        router.refresh();
+        return;
+      }
+
+      if (!response.ok) {
+        setSubjects(previousSubjects);
+        const apiError = await readApiErrorMessage(response);
+        setErrorMessage(
+          apiError.error ??
+            'No se pudo guardar el nuevo orden de las asignaturas.',
+        );
+        return;
+      }
+
+      const payload: unknown = await response.json();
+      const payloadRecord =
+        typeof payload === 'object' && payload !== null
+          ? (payload as Record<string, unknown>)
+          : null;
+
+      const assignedIndex =
+        payloadRecord &&
+        typeof payloadRecord.index === 'number' &&
+        Number.isFinite(payloadRecord.index)
+          ? payloadRecord.index
+          : requestedIndex;
+
+      const rawIndices =
+        payloadRecord && Array.isArray(payloadRecord.indices)
+          ? payloadRecord.indices.filter(isSubjectIndexMapItem)
+          : [];
+
+      if (rawIndices.length > 0) {
+        setSubjects(applySubjectIndices(previousSubjects, rawIndices));
+      } else {
+        setSubjects(
+          sortSubjectsByIndex(
+            previousSubjects.map((item) =>
+              item.id === activeSubjectId
+                ? { ...item, index: assignedIndex }
+                : item,
+            ),
+          ),
+        );
+      }
+
+      const subjectName =
+        previousSubjects.find((item) => item.id === activeSubjectId)?.name ??
+        'la asignatura';
+      setLiveMessage(
+        `${subjectName} se ha movido a la posición ${assignedIndex}.`,
+      );
+    } catch {
+      setSubjects(previousSubjects);
+      setErrorMessage(
+        'No se pudo conectar con el servidor para guardar el orden.',
+      );
+    } finally {
+      if (!redirected) {
+        setPendingReorderId(null);
+      }
+    }
+  };
+
   const handleLogout = async () => {
-    if (pendingLogout || pendingAbsence || pendingConvalidationId) {
+    if (
+      pendingLogout ||
+      pendingAbsence ||
+      pendingConvalidationId ||
+      pendingReorderId
+    ) {
       return;
     }
 
@@ -407,12 +566,14 @@ export function SessionOverviewContainer({
       loadingSubjects={loadingSubjects}
       pendingAbsence={pendingAbsence}
       pendingConvalidationId={pendingConvalidationId}
+      pendingReorderId={pendingReorderId}
       errorMessage={errorMessage}
       liveMessage={liveMessage}
       pendingLogout={pendingLogout}
       onViewDetails={handleViewDetails}
       onAddAbsence={handleAddAbsence}
       onToggleConvalidate={handleToggleConvalidate}
+      onReorderSubject={handleReorderSubject}
       onLogout={handleLogout}
     />
   );

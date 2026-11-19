@@ -6,6 +6,7 @@ export type IconName =
   | 'alert-circle'
   | 'check'
   | 'file-text'
+  | 'grip-vertical'
   | 'log-out'
   | 'more-vertical'
   | 'rotate-ccw'
@@ -25,6 +26,14 @@ const ICON_PATHS: Record<IconName, string[]> = {
   'alert-circle': ['M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z', 'M12 8v4', 'M12 16h.01'],
   check: ['M5 12.5 9.5 17 19 7.5'],
   'file-text': ['M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z', 'M14 2v6h6', 'M16 13H8', 'M16 17H8', 'M10 9H8'],
+  'grip-vertical': [
+    'M9 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z',
+    'M9 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z',
+    'M9 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z',
+    'M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z',
+    'M15 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z',
+    'M15 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z',
+  ],
   'log-out': ['M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4', 'M16 17l5-5-5-5', 'M21 12H9'],
   'more-vertical': ['M12 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z', 'M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z', 'M12 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z'],
   'rotate-ccw': ['M3 12a9 9 0 1 0 3-6.7L3 8', 'M3 3v5h5'],
