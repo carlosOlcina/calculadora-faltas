@@ -10,7 +10,7 @@ import {
 import { fetchWithAuth } from '@/lib/utils/auth-fetch';
 import {
   applySubjectIndices,
-  computeRequestedIndexForDrop,
+  computeDropReorderPlan,
   sortSubjectsByIndex,
   type SubjectIndexMapItem,
 } from '@/lib/utils/subject-order';
@@ -423,12 +423,12 @@ export function SessionOverviewContainer({
       return;
     }
 
-    const requestedIndex = computeRequestedIndexForDrop(
+    const dropPlan = computeDropReorderPlan(
       subjects,
       activeSubjectId,
       overSubjectId,
     );
-    if (requestedIndex === null) {
+    if (!dropPlan) {
       return;
     }
 
@@ -448,13 +448,23 @@ export function SessionOverviewContainer({
     setPendingReorderId(activeSubjectId);
     setErrorMessage(null);
 
+    const requestBody =
+      dropPlan.precedingSubjectIds.length > 0
+        ? {
+            index: dropPlan.requestedIndex,
+            precedingSubjectIds: dropPlan.precedingSubjectIds,
+          }
+        : {
+            index: dropPlan.requestedIndex,
+          };
+
     try {
       const { response, unauthorized } = await fetchWithAuth(
         `/api/subjects/${activeSubjectId}/index`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ index: requestedIndex }),
+          body: JSON.stringify(requestBody),
         },
       );
 
@@ -486,7 +496,7 @@ export function SessionOverviewContainer({
         typeof payloadRecord.index === 'number' &&
         Number.isFinite(payloadRecord.index)
           ? payloadRecord.index
-          : requestedIndex;
+          : dropPlan.requestedIndex;
 
       const rawIndices =
         payloadRecord && Array.isArray(payloadRecord.indices)
